@@ -1,0 +1,9 @@
+{
+  "name": "con-error",
+  "version": "0.0.1",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "jest": "~20.0.4"
+  }
+}
