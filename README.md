@@ -6,19 +6,20 @@
 
 ## Why Another Error Library?
 
-Errors need to do two things:
-- bubble up to prevent subsequent and calling code from executing normally
-- provide information helpful for diagnosis of the problem
+Wrapping errors with contextual info, including nested errors, every other library
+seems to be lacking in. [VError by Joyent](https://github.com/joyent/node-verror) allows
+nesting of errors, which is very helpful. But it does not have support for
+nesting multiple errors *and* including context info in the same error object.
 
-Other libraries provide the first, which is easy enough in JavaScript because anything
-can be thrown, including `undefined`!
+No other error library seems to do the above while blurring the line between an
+Error object and a rejected Promise object.
 
-The second part every other library seems to be lacking in.
-[VError by Joyent](https://github.com/joyent/node-verror) allows nesting of errors,
-which is very helpful. But it does not have great support for nesting *and* including
-context info.
+And no other error library allows all of the above while additionally keeping
+nested stack traces sane.
 
 ## Features
+
+### Basic features
 
 ConError allows including any plain object, as well as underlying errors. 
 
@@ -27,28 +28,98 @@ ConError behaves as a rejected Promise and can be returned as one.
 ConError will make a deep copy of any contextual object provided to it. See the section
 on Cloning.
 
+### Stack traces
+
+As an example, a call chain may be `refreshScreen <- refreshCart <- load <- get`.
+If every method catches and rethrows with additional context, the resulting ConError would
+print the stack trace:
+
+```text
+Error: failed to refresh screen
+  at refreshScreen (screen.js:50:8)
+Caused by: failed to refresh cart
+  at refreshCart (cart.js:50:8)
+Caused by: 'error getting cart details'
+  context: {
+    cartId: 1
+  }
+  at load (cart-details.js:50:8)
+Caused by:
+  context: {
+    statusCode: 500,
+    response: [a largeObject],
+    cartId: 1,
+    sessionId: 'e30d...'
+  }
+  at handleResponse (http:35:8)
+  at sendReq (http:50:10)
+  at get (http.js:80:8)
+```
+
+In the above example, rather than showing the complete stack trace for the innermost error,
+ConError attempts to limit the stacktrace displayed to the lines unique to each error.
+
+With multiple causes, this also attempts to keep the output as contextual as possible.
+Multiple causes create separate traces for each chain:
+
+```text
+Error: failed to refresh screen
+  at refreshScreen (screen.js:50:8)
+Caused by: failed to refresh cart
+  at refreshCart (cart.js:50:8)
+Caused by: 'error getting cart details'
+  context: {
+    cartId: 1
+  }
+  at load (cart-details.js:50:8)
+Caused by:
+  context: {
+    statusCode: 500,
+    response: [a largeObject],
+    cartId: 1,
+    sessionId: 'e30d...'
+  }
+  at handleResponse (http:35:8)
+  at sendReq (http:50:10)
+  at get (http.js:80:8)
+--
+Additional Error: failed to refresh item information
+  at refreshItems (items.js:80:8)
+Caused by:
+  context: {
+    statusCode: 500,
+    response: [a largeObject],
+    cartId: 1,
+    sessionId: 'e30d...'
+  }
+  at handleResponse (http:35:8)
+  at sendReq (http:50:10)
+  at get (http.js:80:8)
+```
+
+In the above example, the second printing did not reprint the errors for
+refreshScreen() and refreshCart().
+
+This is the default printing strategy. A verbose printer could print the complete stack trace
+for every error, and a debugger could step through every error.
+
 ## Usage
 
-### Overview
-
-An example of using the main features:
-
-*****TODO***** I don't like this, I want the ConError to be completely formed before thrown
+### Basic Usage
 
 ```javascript
 const ConError = require('con-error');
 try {
-  something();
+  doSomething();
 } catch (err) {
-  throw new ConError({
+  throw new ConError(err, 'failed to do something', {
       userId: userId,
       service: service
-    })
-    .causedBy(err);
+    });
 }
 ```
 
-#### Cloning
+### Cloning
 
 Because objects can be mutated by other parts of the application, when ConError is given
 its context, it attempts to make a deep clone of the context object.
@@ -57,15 +128,28 @@ This is a way of avoiding cloning very large objects:
 
 ```javascript
 new ConError({
-  items: cart.items.map(item => ({
-    id: item.id
-  }))
+  itemIds: cart.items.map(item => item.id)
 })
 ```
 
-#### .causedBy(Error|Error[])
+## API
 
-`.causedBy` accepts a single error or an array of errors.
+### new ConError(Error?, string?, {}?)
+### new ConError(Error[]?, string?, {}?)
+
+ConError accepts any arrangement of string, Error, array of Error, and arbitrary object,
+with one exception: only one of Error or Error[] may be given.
+
+A ConError may be created with no arguments. This isn't very helpful, of course.
+
+The error or errors, if given, are causes of the ConError being thrown.
+
+The string, if given is presented as the message line of the error in stack traces.
+As a general best-practice, this should give a unique enough description of the context
+for a developer to find where the ConError is raised from.
+
+The arbitrary object at the end, if given, is the context object. This is intended for
+including state of the time of the error to help diagnose the cause of the error.
 
 Typical usage would be:
 
@@ -73,7 +157,7 @@ Typical usage would be:
 try {
   doSomething();
 } catch (e) {
-  throw new ConError(locals).causedBy(e);
+  throw new ConError(e, 'failed in doSomething', locals);
 }
 ```
 
@@ -81,49 +165,13 @@ Usage as a rejected Promise:
 
 ```javascript
 promise
-  .then(() => nextStep())
-  .catch(e => new ConError(locals).causedBy(e));
+  .then(account => nextStep(account))
+  .catch(e => new ConError(e, 'failed in nextStep to register user', {
+    email: email
+  }));
 ```
 
-### .border()
-
-Adding this call will mark a ConError as being a error on the border between internal
-and front-end. Nested errors will be treated as internal and not printed in the console.
-The error marked as border will be the final error printed to a console.
-
-```javascript
-throw new ConError(locals).internal();
-```
-
-#### CError.all(Promise[])
-
-The hard way of handling an array of rejected promises:
-
-```javascript
-Promise.all(promises)
-  .then(promises => promises.map(p => p.then(p, Error)))
-  .then(results => {
-    const errors = results.filter(p => p instanceof Error);
-    return errors.length === 0 ? results : Promise.reject(errors);
-  })
-  .then(/* do something with all resolved */)
-  .catch(errors => (errors.length > 0) ?
-      CError(locals).causedBy(errors).throw() :
-      CError(locals).throw()
-  );
-```
-
-The easier way:
-
-```javascript
-CError.all(promises)
-  .then(/* do something with all resolved */);
-```
-
-CError.all will act identically to Promise.all when promises are all resolved. When one
-or more are rejected, it will return a new CError caused by rejections.
-
-#### .throw()
+### .throw()
 
 `.throw` does as it says, it will throw the ConError.
 
@@ -134,43 +182,41 @@ for when the `throw` keyword is not permitted. e.g.,
 const assertPositive = number =>
   number > 0 ?
     number :
-    new ConError({number: number}).throw();
+    new ConError('number not positive', {number: number}).throw();
 ``` 
 
-### Promise-like functions
+## Promise-like functions
 
-These functions mainly exist to make ConError appear Promise-like. They are not intended
-for direct usage.
+These functions mainly exist to make ConError appear Promise-like. The return values
+are native es6 Promises (or polyfills) and can be chained as usual.
 
-##### .then(fn, fn)
+### ConError.all(Promise[], string?, {}?)
 
-As an error, the first callback of `.then` is never called. Most `isPromiseLike`
-functions test with the `.then` function.
-
-Some promise libraries follow the `.then(resolved, rejected)` pattern. When a rejected
-callback is given, this is called after the interpreter has settled.
-
-***WARNING***
-
-This does *not* follow the Promise API. It is only intended for use as a rejected promise
-and cannot be reliably chained. e.g., this will not work:
+Similar to Promise.all, except if any Promise instances are rejected it resolves as
+a rejected Promise with a ConError instance. A message string and context info
+can be optionally provided.
 
 ```javascript
-fnThatReturnsCError()
+ConError.all(promises, 'failed in loading auction lot data', {lotId: lotId})
+  .then(/* do something with all resolved */);
+```
+
+### .then(fn, fn?)
+
+The first callback of `.then` is never called, since a ConError instance is always rejected.
+
+When a rejected callback is given, this is called after the interpreter has settled. The
+ConError instance is given as the argument to the callback.
+
+This will call applyOption with the resolved value of defaultOption:
+
+```javascript
+fnThatReturnsConError()
   .then(opt => opt, () => defaultOption)
   .then(opt => applyOption(opt));
 ```
 
-More specifically, the return value of `.then` and `.catch` is the same object. Therefore,
-return values from `.then` and `.catch` callbacks will not alter the rejected value. It will
-always be rejected with the same CError.
+### .catch(fn)
 
-
-##### .catch(fn)
-
-The callback of `.catch` is always called after the interpreter has settled. It always
-calls the callback with itself as the only argument.
-
-***WARNING***
-
-As above in `.then(fn, fn)`, this does *not* follow the Promise API.
+The callback of `.catch` is always called after the interpreter has settled. The ConError
+instance is given as the argument to the callback.
