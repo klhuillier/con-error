@@ -6,16 +6,18 @@
 
 ## Why Another Error Library?
 
-Wrapping errors with contextual info, including nested errors, every other library
-seems to be lacking in. [VError by Joyent](https://github.com/joyent/node-verror) allows
-nesting of errors, which is very helpful. But it does not have support for
-nesting multiple errors *and* including context info in the same error object.
+Every other library seems to lack the ability to wrap errors with contextual info,
+including nested errors. [VError by Joyent](https://github.com/joyent/node-verror)
+is the closest. But it does not have support for nesting multiple errors *and*
+including context info in the same error object.
 
 No other error library seems to do the above while blurring the line between an
 Error object and a rejected Promise object.
 
-And no other error library allows all of the above while additionally keeping
-nested stack traces sane.
+And no other error library allows all of the above while additionally listing an
+entire stack trace with each nested error at appropriate frames, as opposed to
+listing the entire trace for every error. (This will make more sense in the section on
+stack traces.)
 
 ## Features
 
@@ -134,22 +136,18 @@ new ConError({
 
 ## API
 
-### new ConError(Error?, string?, {}?)
-### new ConError(Error[]?, string?, {}?)
+### new ConError((Error|Error[])?, string?, {}?)
 
-ConError accepts any arrangement of string, Error, array of Error, and arbitrary object,
-with one exception: only one of Error or Error[] may be given.
+ConError accepts an Error or array of Error, a message, and an arbitrary object. All
+values are optional, but any that are given must appear in the expected order.
 
-A ConError may be created with no arguments. This isn't very helpful, of course.
-
-The error or errors, if given, are causes of the ConError being thrown.
-
-The string, if given is presented as the message line of the error in stack traces.
-As a general best-practice, this should give a unique enough description of the context
-for a developer to find where the ConError is raised from.
-
-The arbitrary object at the end, if given, is the context object. This is intended for
-including state of the time of the error to help diagnose the cause of the error.
+All three parameters have distinct purposes in diagnosing errors:
+- nested errors hold the state for where the original error occurred, lower-level
+- message is useful for giving a general description of what was being attempted in
+  the frame this error was thrown from (it may even be distinct enough to locate the
+  exact line in the application with grep)
+- context gives a snapshot of the local variable state of the frame this error was
+  thrown from
 
 Typical usage would be:
 
@@ -157,7 +155,7 @@ Typical usage would be:
 try {
   doSomething();
 } catch (e) {
-  throw new ConError(e, 'failed in doSomething', locals);
+  throw new ConError(e, 'error in some process', locals);
 }
 ```
 
@@ -185,14 +183,117 @@ const assertPositive = number =>
     new ConError('number not positive', {number: number}).throw();
 ``` 
 
-## Promise-like functions
+### .toString()
 
-These functions mainly exist to make ConError appear Promise-like. The return values
-are native es6 Promises (or polyfills) and can be chained as usual.
+Equivalent to `conError.printer().stringify(conError)`
+
+Returns a string containing the entire stack trace of the ConError instance and *the
+first parents* of its cause hierarchy. That is, it will only select the first cause for
+each ConError with multiple causes.
+
+See above in Features, Stack Traces.
+
+To stringify all lines of errors, `cerr.transform().lines().map(e => e.toString())`
+
+To stringify all individual errors, `cerr.transform().flattened().map(e => e.toString())`
+
+### .write((WritableStream|Console)?)
+
+Equivalent to `conError.printer().write(writer, conError)`
+
+Attempts to write the ConError's entire stack trace, and its cause hierarchy, to
+the given writable stream. Like `.toString()`, this only selects the first parent 
+in the cause hierarchy.
+
+This attempts to use a `.write` method, first. Second, it will try to use
+`.error`, so a console object can be passed to it.
+
+If no object is not given, this will attempt to write to the global `console.error`.
+
+To write all lines of errors, `cerr.transform().lines().forEach(e => e.write(stream))`
+
+To write all individual errors, `cerr.transform().flattened().forEach(e => e.write(stream))`
+
+### .printer()
+
+Returns a `CePrinter` instance, the default printer for the ConError.
+
+### .transform()
+
+Returns a `CeTransform` instance with the callee as the referent object.
+
+### .causes()
+
+Returns a list of nested errors, if any. If there are none, this is an empty array.
+
+### .message()
+
+Returns the message the ConError was constructed with. If there was none, this is
+an empty string.
+
+### .context()
+
+Returns the contextual object the ConError was constructed with. If there was none,
+this is an empty object.
+
+The object returned here is the same context object that is held by the ConError.
+This is as opposed to the constructor parameter, which is cloned to capture the state
+of the variables when the ConError is created.
+
+### .stack()
+
+Returns the full stack of the error object. The stack is produced by
+[https://github.com/stacktracejs/error-stack-parser](error-stack-parse).
+
+## CeTransform
+
+### .lines()
+
+This returns an array of new ConError instances where each ConError in the hierarchy
+has exactly one parent.
+
+For example, if B failed because of two async functions, C and D, the returned array
+could contain two ConError instances with hierarchies like this:
+
+```text
+before: [ A <- [B <- E, C <- D] ]
+
+after: [
+  A <- B <- E
+  A <- C <- D
+]
+```
+
+This only returns lines to root errors. It will not return a line ending with a ConError
+containing a cause. Therefore, in the above, it would not return `[A <- B]`
+
+### .flatten()
+
+Returns an array of the referent ConError as well as all Error types listed as causes in the
+error hierarchy.
+
+The order will likely be stable in any given ConError object, but this
+is not guaranteed. The ordering between different ConError objects and different versions
+of ConError is not guaranteed to be stable.
+
+## ConError's Promise-like behavior
+
+The `.then` function mainly exists to make ConError appear Promise-like. The return
+values are native es6 Promises (or polyfills) and can be chained as usual.
+
+**Caveat**
+
+The ConError itself only mimics a Promise. Most Promise libraries will check for the
+`.then` function. The EcmaScript standard checks for internal states which cannot be
+set by script. Therefore, most libraries will treat it as a Promise, but a native es6
+`Promise.resolve(conError) !== conError`, meaning there are subtle differences.
+
+After the first `.then`, because a native es6 Promise is returned, the behavior should
+be perfectly identical.
 
 ### ConError.all(Promise[], string?, {}?)
 
-Similar to Promise.all, except if any Promise instances are rejected it resolves as
+Similar to `Promise.all`, except if any Promise instances are rejected it resolves as
 a rejected Promise with a ConError instance. A message string and context info
 can be optionally provided.
 
@@ -201,7 +302,7 @@ ConError.all(promises, 'failed in loading auction lot data', {lotId: lotId})
   .then(/* do something with all resolved */);
 ```
 
-### .then(fn, fn?)
+### .then(fn, fn)
 
 The first callback of `.then` is never called, since a ConError instance is always rejected.
 
@@ -216,7 +317,82 @@ fnThatReturnsConError()
   .then(opt => applyOption(opt));
 ```
 
-### .catch(fn)
+## CePrinter
 
-The callback of `.catch` is always called after the interpreter has settled. The ConError
-instance is given as the argument to the callback.
+Most CePrinters are created with the ConError. The printers can be modified before
+printing.
+
+### .stringify(ConError?)
+
+See `ConError.toString()`
+
+### .write((WritableStream|Console), ConError?)
+
+See `ConError.write()`
+
+### .fullStacks()
+
+Returns a new CePrinter which will not attempt to minimize overlap in stack traces.
+
+### .withWriters(fns)
+
+Returns a new CePrinter which will call the given functions for writing each component.
+
+The given functions are merged with the default functions, so not all need to be
+specified to override a specific part. `.withWriters({endFrame: () => '--\n'})` is
+perfectly legal.
+
+See `CePrinter.writeTemplate`
+
+`fns` should either be a single function which will format everything, or an object with
+functions for each:
+
+```javascript
+const fns = {
+  causeMsg: () => {},
+  beginFrame: () => {},
+  ctor: (name) => {},
+  message: (message) => {},
+  context: (obj, transform, indent) => {},
+  stackFrame: (frameIdx, frameObj) => {},
+  endFrame: () => {},
+}
+```
+
+The template for writing an error frame:
+
+```text
+{{beginFrame}}{{causeMsg}}{{ctor}}{{message}}{{context}}{{stackFrames}}{{endFrame}}
+```
+
+causeMsg is only listed for nested errors, and is typically 'Caused by: '.
+
+beginFrame and endFrame typically have no content
+
+ctor typically is the constructor name, e.g.,: 'Error: '
+
+message typically prints the string as-is, with a newline at the end
+
+context typically writes the object run through JSON.stringify with {"context":context}
+with a newline at the end, but prints nothing if there is no object
+
+stackFrames typically print one per line: 'fn@filename:lineNum:colNum\n'
+
+## Miscellany
+
+### Message formatted strings
+
+sprintf messages are explicitly not supported. Most sprintf placeholders are to hold things
+like IDs, and these should be listed in contextual objects.
+
+I have a few reasons for this:
+1. The constructor parameter list is already long enough (Error, string, object) without
+   introducing a variable list of sprintf arguments.
+2. You can still use a sprintf function while building a ConError object, e.g.,
+   `new ConError(sprintf('user ID %d is invalid', userId))`
+3. In my own experience, most sprintf arguments for errors are to insert local values into
+   the message string. This is exactly what a context object is useful for:
+   `new ConError('user ID is invalid', {userId: userId})`. This has the added benefits:
+   - the message string remains constant and more easily grepped
+   - large context objects are rendered very nicely in browser consoles
+   - adding more context is easy without trying to put values into a string form

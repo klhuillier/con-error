@@ -2,6 +2,7 @@
   "name": "con-error",
   "version": "0.0.1",
   "dependencies": {
+    "error-stack-parser": "~2.0.1"
   },
   "devDependencies": {
     "jest": "~20.0.4"
