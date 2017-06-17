@@ -185,8 +185,6 @@ const assertPositive = number =>
 
 ### .toString()
 
-Equivalent to `conError.printer().stringify(conError)`
-
 Returns a string containing the entire stack trace of the ConError instance and *the
 first parents* of its cause hierarchy. That is, it will only select the first cause for
 each ConError with multiple causes.
@@ -198,8 +196,6 @@ To stringify all lines of errors, `cerr.transform().lines().map(e => e.toString(
 To stringify all individual errors, `cerr.transform().flattened().map(e => e.toString())`
 
 ### .write((WritableStream|Console)?)
-
-Equivalent to `conError.printer().write(writer, conError)`
 
 Attempts to write the ConError's entire stack trace, and its cause hierarchy, to
 the given writable stream. Like `.toString()`, this only selects the first parent 
@@ -213,10 +209,6 @@ If no object is not given, this will attempt to write to the global `console.err
 To write all lines of errors, `cerr.transform().lines().forEach(e => e.write(stream))`
 
 To write all individual errors, `cerr.transform().flattened().forEach(e => e.write(stream))`
-
-### .printer()
-
-Returns a `CePrinter` instance, the default printer for the ConError.
 
 ### .transform()
 
@@ -316,67 +308,6 @@ fnThatReturnsConError()
   .then(opt => opt, () => defaultOption)
   .then(opt => applyOption(opt));
 ```
-
-## CePrinter
-
-Most CePrinters are created with the ConError. The printers can be modified before
-printing.
-
-### .stringify(ConError?)
-
-See `ConError.toString()`
-
-### .write((WritableStream|Console), ConError?)
-
-See `ConError.write()`
-
-### .fullStacks()
-
-Returns a new CePrinter which will not attempt to minimize overlap in stack traces.
-
-### .withWriters(fns)
-
-Returns a new CePrinter which will call the given functions for writing each component.
-
-The given functions are merged with the default functions, so not all need to be
-specified to override a specific part. `.withWriters({endFrame: () => '--\n'})` is
-perfectly legal.
-
-See `CePrinter.writeTemplate`
-
-`fns` should either be a single function which will format everything, or an object with
-functions for each:
-
-```javascript
-const fns = {
-  causeMsg: () => {},
-  beginFrame: () => {},
-  ctor: (name) => {},
-  message: (message) => {},
-  context: (obj, transform, indent) => {},
-  stackFrame: (frameIdx, frameObj) => {},
-  endFrame: () => {},
-}
-```
-
-The template for writing an error frame:
-
-```text
-{{beginFrame}}{{causeMsg}}{{ctor}}{{message}}{{context}}{{stackFrames}}{{endFrame}}
-```
-
-causeMsg is only listed for nested errors, and is typically 'Caused by: '.
-
-beginFrame and endFrame typically have no content
-
-ctor typically is the constructor name, e.g.,: 'Error: '
-
-message typically prints the string as-is, with a newline at the end
-
-context typically writes the object run through JSON.stringify with {"context":context}
-with a newline at the end, but prints nothing if there is no object
-
-stackFrames typically print one per line: 'fn@filename:lineNum:colNum\n'
 
 ## Miscellany
 
