@@ -1,34 +1,24 @@
 # ConError
 
-## Contextual Errors in JavaScript
+## Contextual JavaScript Errors
 
 ###### Give context to your errors or the bunny gets it
-
-## Why Another Error Library?
-
-Every other library seems to lack the ability to wrap errors with contextual info,
-including nested errors. [VError by Joyent](https://github.com/joyent/node-verror)
-is the closest. But it does not have support for nesting multiple errors *and*
-including context info in the same error object.
-
-No other error library seems to do the above while blurring the line between an
-Error object and a rejected Promise object.
-
-And no other error library allows all of the above while additionally listing an
-entire stack trace with each nested error at appropriate frames, as opposed to
-listing the entire trace for every error. (This will make more sense in the section on
-stack traces.)
 
 ## Features
 
 ### Basic features
 
-ConError allows including any plain object, as well as underlying errors. 
+ConError attempts to avoid noise in stack traces by listing a full
+stack trace interleaved with exceptions thrown at each point in the stack.
 
 ConError behaves as a rejected Promise and can be returned as one.
 
-ConError will make a deep copy of any contextual object provided to it. See the section
-on Cloning.
+ConError allows including any plain object.
+
+ConError allows chaining errors together. 
+
+ConError will make a deep copy of any contextual object provided to it to prevent
+unexpected mutation of objects before inspection.
 
 ### Stack traces
 
@@ -105,7 +95,7 @@ refreshScreen() and refreshCart().
 This is the default printing strategy. A verbose printer could print the complete stack trace
 for every error, and a debugger could step through every error.
 
-## Usage
+## API
 
 ### Basic Usage
 
@@ -120,21 +110,6 @@ try {
     });
 }
 ```
-
-### Cloning
-
-Because objects can be mutated by other parts of the application, when ConError is given
-its context, it attempts to make a deep clone of the context object.
-
-This is a way of avoiding cloning very large objects:
-
-```javascript
-new ConError({
-  itemIds: cart.items.map(item => item.id)
-})
-```
-
-## API
 
 ### new ConError((Error|Error[])?, string?, {}?)
 
@@ -234,7 +209,8 @@ of the variables when the ConError is created.
 
 ### .stack()
 
-Returns the full stack of the error object. The stack is produced by
+Returns the full stack of this single error object, not including its causes. The
+stack is produced by
 [https://github.com/stacktracejs/error-stack-parser](error-stack-parse).
 
 ## CeTransform
@@ -244,11 +220,13 @@ Returns the full stack of the error object. The stack is produced by
 This returns an array of new ConError instances where each ConError in the hierarchy
 has exactly one parent.
 
+The order the lines appear in the array is not guaranteed.
+
 For example, if B failed because of two async functions, C and D, the returned array
 could contain two ConError instances with hierarchies like this:
 
 ```text
-before: [ A <- [B <- E, C <- D] ]
+before: [ A <- [ B <- E, C <- D ] ]
 
 after: [
   A <- B <- E
@@ -264,30 +242,30 @@ containing a cause. Therefore, in the above, it would not return `[A <- B]`
 Returns an array of the referent ConError as well as all Error types listed as causes in the
 error hierarchy.
 
-The order will likely be stable in any given ConError object, but this
-is not guaranteed. The ordering between different ConError objects and different versions
-of ConError is not guaranteed to be stable.
+The order is not guaranteed.
 
 ## ConError's Promise-like behavior
 
 The `.then` function mainly exists to make ConError appear Promise-like. The return
 values are native es6 Promises (or polyfills) and can be chained as usual.
 
-**Caveat**
+**Caveat 0**
 
-The ConError itself only mimics a Promise. Most Promise libraries will check for the
-`.then` function. The EcmaScript standard checks for internal states which cannot be
-set by script. Therefore, most libraries will treat it as a Promise, but a native es6
-`Promise.resolve(conError) !== conError`, meaning there are subtle differences.
+The EcmaScript standard checks for internal states which cannot be set by script.
+With native es6, `Promise.resolve(conError) !== conError`.
 
-After the first `.then`, because a native es6 Promise is returned, the behavior should
-be perfectly identical.
+The return value of `.then` is a native Promise.
+
+**Caveat 1**
+
+ConError appears as an `instanceof Error`. It is not an `instanceof Promise`.
 
 ### ConError.all(Promise[], string?, {}?)
 
-Similar to `Promise.all`, except if any Promise instances are rejected it resolves as
-a rejected Promise with a ConError instance. A message string and context info
-can be optionally provided.
+Similar to `Promise.all`, except when rejected, the ConError will contain *all* rejected
+promises, not just the first.
+
+A message string and context info can be optionally provided.
 
 ```javascript
 ConError.all(promises, 'failed in loading auction lot data', {lotId: lotId})
@@ -313,8 +291,8 @@ fnThatReturnsConError()
 
 ### Message formatted strings
 
-sprintf messages are explicitly not supported. Most sprintf placeholders are to hold things
-like IDs, and these should be listed in contextual objects.
+sprintf messages are intentionally not supported. Most sprintf placeholders are to hold
+things like IDs, and these should be listed in contextual objects.
 
 I have a few reasons for this:
 1. The constructor parameter list is already long enough (Error, string, object) without
