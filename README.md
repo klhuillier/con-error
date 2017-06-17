@@ -1,6 +1,4 @@
-# ConError
-
-## Contextual JavaScript Errors
+# ConError - Contextual JavaScript Errors
 
 ###### Give context to your errors or the bunny gets it
 
@@ -8,17 +6,14 @@
 
 ### Basic features
 
-ConError attempts to avoid noise in stack traces by listing a full
-stack trace interleaved with exceptions thrown at each point in the stack.
-
-ConError behaves as a rejected Promise and can be returned as one.
-
-ConError allows including any plain object.
-
-ConError allows chaining errors together. 
-
-ConError will make a deep copy of any contextual object provided to it to prevent
-unexpected mutation of objects before inspection.
+ConError:
+- attempts to avoid noise in stack traces by listing a full
+  stack trace interleaved with exceptions thrown at each point in the stack
+- behaves similar to a rejected Promise and can usually be returned as one
+- allows including any plain object
+- allows chaining errors together
+- will make a deep copy of any contextual object provided to it to prevent
+  unexpected mutation of objects before inspection
 
 ### Stack traces
 
@@ -29,9 +24,9 @@ print the stack trace:
 ```text
 Error: failed to refresh screen
   at refreshScreen (screen.js:50:8)
-Caused by: failed to refresh cart
+Caused by: Error: failed to refresh cart
   at refreshCart (cart.js:50:8)
-Caused by: 'error getting cart details'
+Caused by: Error: error getting cart details
   context: {
     cartId: 1
   }
@@ -51,50 +46,6 @@ Caused by:
 In the above example, rather than showing the complete stack trace for the innermost error,
 ConError attempts to limit the stacktrace displayed to the lines unique to each error.
 
-With multiple causes, this also attempts to keep the output as contextual as possible.
-Multiple causes create separate traces for each chain:
-
-```text
-Error: failed to refresh screen
-  at refreshScreen (screen.js:50:8)
-Caused by: failed to refresh cart
-  at refreshCart (cart.js:50:8)
-Caused by: 'error getting cart details'
-  context: {
-    cartId: 1
-  }
-  at load (cart-details.js:50:8)
-Caused by:
-  context: {
-    statusCode: 500,
-    response: [a largeObject],
-    cartId: 1,
-    sessionId: 'e30d...'
-  }
-  at handleResponse (http:35:8)
-  at sendReq (http:50:10)
-  at get (http.js:80:8)
---
-Additional Error: failed to refresh item information
-  at refreshItems (items.js:80:8)
-Caused by:
-  context: {
-    statusCode: 500,
-    response: [a largeObject],
-    cartId: 1,
-    sessionId: 'e30d...'
-  }
-  at handleResponse (http:35:8)
-  at sendReq (http:50:10)
-  at get (http.js:80:8)
-```
-
-In the above example, the second printing did not reprint the errors for
-refreshScreen() and refreshCart().
-
-This is the default printing strategy. A verbose printer could print the complete stack trace
-for every error, and a debugger could step through every error.
-
 ## API
 
 ### Basic Usage
@@ -113,7 +64,7 @@ try {
 
 ### new ConError((Error|Error[])?, string?, {}?)
 
-ConError accepts an Error or array of Error, a message, and an arbitrary object. All
+ConError accepts an Error or array of Errors, a message, and an arbitrary object. All
 values are optional, but any that are given must appear in the expected order.
 
 All three parameters have distinct purposes in diagnosing errors:
@@ -137,7 +88,7 @@ try {
 Usage as a rejected Promise:
 
 ```javascript
-promise
+return promise
   .then(account => nextStep(account))
   .catch(e => new ConError(e, 'failed in nextStep to register user', {
     email: email
@@ -148,8 +99,7 @@ promise
 
 `.throw` does as it says, it will throw the ConError.
 
-This isn't needed when used in a block, but in a lamdba function it can be helpful
-for when the `throw` keyword is not permitted. e.g.,
+Used when the `throw` keyword is not permitted, e.g., in a lamdba block:
 
 ```javascript
 const assertPositive = number =>
@@ -160,15 +110,13 @@ const assertPositive = number =>
 
 ### .toString()
 
-Returns a string containing the entire stack trace of the ConError instance and *the
-first parents* of its cause hierarchy. That is, it will only select the first cause for
+Returns a string containing the entire stack trace of the ConError instance and the
+*first parents* of its cause hierarchy. That is, it will only select the first cause for
 each ConError with multiple causes.
 
-See above in Features, Stack Traces.
+To stringify all lines of errors, `cerr.aggregate().lines().map(e => e.toString())`
 
-To stringify all lines of errors, `cerr.transform().lines().map(e => e.toString())`
-
-To stringify all individual errors, `cerr.transform().flattened().map(e => e.toString())`
+To stringify all individual errors, `cerr.aggregate().flattened().map(e => e.toString())`
 
 ### .write((WritableStream|Console)?)
 
@@ -176,18 +124,18 @@ Attempts to write the ConError's entire stack trace, and its cause hierarchy, to
 the given writable stream. Like `.toString()`, this only selects the first parent 
 in the cause hierarchy.
 
-This attempts to use a `.write` method, first. Second, it will try to use
-`.error`, so a console object can be passed to it.
+This attempts to use a `.write` method on the given argument, first. Second, it will try 
+to use `.error`, so a console object can be passed to it.
 
 If no object is not given, this will attempt to write to the global `console.error`.
 
-To write all lines of errors, `cerr.transform().lines().forEach(e => e.write(stream))`
+To write all lines of errors, `cerr.aggregate().lines().forEach(e => e.write(stream))`
 
-To write all individual errors, `cerr.transform().flattened().forEach(e => e.write(stream))`
+To write all individual errors, `cerr.aggregate().flattened().forEach(e => e.write(stream))`
 
-### .transform()
+### .aggregate()
 
-Returns a `CeTransform` instance with the callee as the referent object.
+Returns a `CeAggregate` instance with the callee as the referent object.
 
 ### .causes()
 
@@ -213,14 +161,17 @@ Returns the full stack of this single error object, not including its causes. Th
 stack is produced by
 [https://github.com/stacktracejs/error-stack-parser](error-stack-parse).
 
-## CeTransform
+## CeAggregate
 
 ### .lines()
 
-This returns an array of new ConError instances where each ConError in the hierarchy
-has exactly one parent.
+This returns an array of new ConError instances where:
+- the referent ConError is the head of each chain
+- each leaf in the hierarchy is returned
+- each ConError in the new chain has exactly one child
+- each chain ends with an object that is either not a ConError or was a ConError with no cause objects
 
-The order the lines appear in the array is not guaranteed.
+The order of the array is not deterministic.
 
 For example, if B failed because of two async functions, C and D, the returned array
 could contain two ConError instances with hierarchies like this:
@@ -234,15 +185,12 @@ after: [
 ]
 ```
 
-This only returns lines to root errors. It will not return a line ending with a ConError
-containing a cause. Therefore, in the above, it would not return `[A <- B]`
-
 ### .flatten()
 
 Returns an array of the referent ConError as well as all Error types listed as causes in the
 error hierarchy.
 
-The order is not guaranteed.
+The order is not deterministic.
 
 ## ConError's Promise-like behavior
 
@@ -254,7 +202,13 @@ values are native es6 Promises (or polyfills) and can be chained as usual.
 The EcmaScript standard checks for internal states which cannot be set by script.
 With native es6, `Promise.resolve(conError) !== conError`.
 
-The return value of `.then` is a native Promise.
+The return value of `.then` is a native Promise, and `isNativePromise` is true in
+this example:
+
+```javascript
+const p = conError.then(() => {}, () => {});
+const isNativePromise = Promise.resolve(p) === p;
+```
 
 **Caveat 1**
 
@@ -287,6 +241,12 @@ fnThatReturnsConError()
   .then(opt => applyOption(opt));
 ```
 
+### .catch(fn)
+
+The callback is always called after the interpreter has settled.
+
+The return value is a native Promise which will be resolved or rejected based on the callback.
+
 ## Miscellany
 
 ### Message formatted strings
@@ -294,13 +254,14 @@ fnThatReturnsConError()
 sprintf messages are intentionally not supported. Most sprintf placeholders are to hold
 things like IDs, and these should be listed in contextual objects.
 
-I have a few reasons for this:
-1. The constructor parameter list is already long enough (Error, string, object) without
-   introducing a variable list of sprintf arguments.
-2. You can still use a sprintf function while building a ConError object, e.g.,
+A few reasons for this:
+
+- The formal parameter list of the constructor is already long enough (Error, string, object)
+   without making it variadic for sprintf arguments.
+- You can still use a sprintf function while building a ConError object, e.g.,
    `new ConError(sprintf('user ID %d is invalid', userId))`
-3. In my own experience, most sprintf arguments for errors are to insert local values into
-   the message string. This is exactly what a context object is useful for:
+- sprintf arguments for errors are often to insert local values into the message string, which
+   is what a context object is intended for:
    `new ConError('user ID is invalid', {userId: userId})`. This has the added benefits:
    - the message string remains constant and more easily grepped
    - large context objects are rendered very nicely in browser consoles
