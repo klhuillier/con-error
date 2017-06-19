@@ -162,8 +162,8 @@ of the variables when the ConError is created.
 
 ### .stack()
 
-Returns the full stack of this single error object, not including its causes. The
-stack is of this form for a single stack frame:
+Returns the stack specific to this single error object, not including its causes. The
+stack is of this form for a stack frame:
 
 ```json
 [
@@ -177,6 +177,12 @@ stack is of this form for a single stack frame:
   }
 ]
 ```
+
+Like most stack traces, the inner-most call is the first element of the array.
+
+### .fullStack()
+
+Like `.stack()`, but returns the entire stack trace for this error object.
 
 ## CeFormats
 
@@ -195,17 +201,14 @@ no values that cannot be encoded as JSON. i.e., no functions, no DOM elements, e
 
 Returns form of the ConError that is formatted as a plain string.
 
-### .mixed()
-
-Returns form of the ConError that will write mostly the same as `CeStringFormat`, but will not
-serialize context objects so that in browser consoles the objects will listed as
+By default, in a browser, this will not serialize context objects so that the objects will listed as
 collapsible/expandable objects.
 
 ## CeFormat
 
 Various forms of printable ConErrors, usually produced through `conError.formats()`.
 
-Not every format supports every method. e.g., a JSON printer does not support colorizing.
+Not every format supports every method. e.g., only a CeStringFormat supports highlighting.
 
 All formats support:
 
@@ -246,25 +249,18 @@ This is the default format for `conError.print()` in Node.js.
 
 Writes a string form of the error and stack traces.
 
+### .jsonContexts()
+
+Returns a new `CeStringFormat` that converts the context objects to JSON before printing. The
+default is to write the objects as-is while in a browser, which may write them as 
+'\[Object object\]'. Outside of a browser, writing objects as JSON is the default.
+
 ### .highlighted()
 
 Returns a new instance of this `CeStringFormat` that will attempt to add coloring to the output
 string.
 
 In a browser, this will use CSS styling, and in Node.js this will use ANSI colors.
-
-## CeMixedFormat
-
-This is a mix between `CeObjectFormat` and `CeStringFormat`, except that when it prints the context objects, it
-will print them as objects and not as serialized forms of the objects. In browser consoles, this
-makes them collapsible/expandable.
-
-### .highlighted()
-
-Returns a new instance of this `CeMixedFormat` that will attempt to add coloring to the output
-string.
-
-In a browser, this will use CSS styling, and in a terminal this will use ANSI colors.
 
 ## CeJsonFormat
 
@@ -420,3 +416,10 @@ A few reasons for this:
    - the message string remains constant and more easily grepped
    - large context objects are rendered very nicely in browser consoles
    - adding more context is easy without trying to put values into a string form
+
+### Additional custom formatting
+
+This is intentionally omitted as well.
+
+Since there's so little to a ConError object, one could easily write their own formatter that takes
+a ConError instead of trying to plug into some form of CeFormat API.
