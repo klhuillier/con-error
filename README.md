@@ -112,19 +112,6 @@ const assertPositive = number =>
     new ConError('number not positive', {number: number}).throw();
 ``` 
 
-### .print((Console|WritableStream|(...any) => void))
-
-Attempts to write the ConError's entire stack trace, and its cause hierarchy, to
-the given console's `.error`. This only selects the first parent at each level in the cause
-hierarchy.
-
-Equivalent to calling `conError.printers().mixed().print()` in a browser, or
-`conError.printers().string().print()` in a terminal.
-
-To write all chains of errors, `cerr.aggregate().chains().forEach(e => e.print(console))`
-
-To write all individual errors, `cerr.aggregate().flattened().forEach(e => e.print(console))`
-
 ### .toString()
 
 Returns a string containing the entire stack trace of the ConError instance. At each level in
@@ -136,11 +123,11 @@ To stringify all individual errors, `cerr.aggregate().flattened().map(e => e.toS
 
 ### .formats()
 
-Returns a `CeFormats` object to produce a `CeFormat`.
+Returns a `CeFormats` instance to produce outputs for this ConError.
 
 ### .aggregate()
 
-Returns a `CeAggregate` instance with the callee as the referent object.
+Returns a `CeAggregate` instance for this ConError.
 
 ### .causes()
 
@@ -162,109 +149,46 @@ of the variables when the ConError is created.
 
 ### .stack()
 
-Returns the stack specific to this single error object, not including its causes. The
-stack is of this form for a stack frame:
+Returns the stack of this error as an array. The stack is of this form for a stack frame:
 
 ```json
-[
-  {
-    "function": "refresh",
-    "script": "app/store/cart.js",
-    "line": 50,
-    "column": 8,
-    "eval": false,
-    "native": false
-  }
-]
+{
+  "function": "refresh",
+  "script": "app/store/cart.js",
+  "line": 50,
+  "column": 8,
+  "eval": false,
+  "native": false
+}
 ```
 
 Like most stack traces, the inner-most call is the first element of the array.
 
-### .fullStack()
-
-Like `.stack()`, but returns the entire stack trace for this error object.
-
 ## CeFormats
 
-Created by a ConError with `.formats()`, the CeFormats has various ways of encoding the ConError. 
+Created by a ConError with `.formats()`, the CeFormats has various ways of encoding the ConError.
+Some methods only apply to some formats.
 
-### .json()
+### Output methods
 
-Returns a form of the ConError that is formatted as a JSON object.
+#### .string()
 
-### .object()
-
-Returns a form of the ConError that is formatted as a plain JavaScript object. That is, an object with
-no values that cannot be encoded as JSON. i.e., no functions, no DOM elements, etc.
-
-### .string()
-
-Returns form of the ConError that is formatted as a plain string.
+Returns a form of the ConError that is formatted as a plain string.
 
 By default, in a browser, this will not serialize context objects so that the objects will listed as
 collapsible/expandable objects.
 
-## CeFormat
+#### .object()
 
-Various forms of printable ConErrors, usually produced through `conError.formats()`.
+Returns a form of the ConError that is formatted as a plain JavaScript object. That is, an object with
+no values that cannot be encoded as JSON. i.e., no functions, no DOM elements, etc.
 
-Not every format supports every method. e.g., only a CeStringFormat supports highlighting.
+In Node.js, this is similar to the `.json` formatter because it transforms objects into JSON when
+printed to a terminal.
 
-All formats support:
+#### .json()
 
-### .print((Console|WritableStream|(...any) => void))?)
-
-Writes the ConError that created this printer to the given output.
-
-The output is called once. For a very large error, this may mean buffering a large amount
-of data first.
-
-### .maxDepth(number)
-
-Returns a new instance of the CeFormat which will only print the given number
-of causes.
-
-e.g., .maxDepth(1) will show the ConError as well as the first cause error and
-will not print any further causes. .maxDepth(0) only shows the referent ConError.
-
-### .fullStacks()
-
-Returns a new CeFormat which will print full stack traces for every error. Default behavior
-is to attempt to limit the stack trace lines to those that are unique to each error.
-
-## CeObjectFormat
-
-This is the default format for `conError.print()` in a browser.
-
-Writes a JS object containing the entirety of the ConError's hierarchy.
-
-This is similar to calling `JSON.parse()` with the output of `conError.formats().json().print()`,
-but is not guaranteed to produce exactly the same result.
-
-When written in a browser console, this may support property collapsing/expansion.
-
-## CeStringFormat
-
-This is the default format for `conError.print()` in Node.js.
-
-Writes a string form of the error and stack traces.
-
-### .jsonContexts()
-
-Returns a new `CeStringFormat` that converts the context objects to JSON before printing. The
-default is to write the objects as-is while in a browser, which may write them as 
-'\[Object object\]'. Outside of a browser, writing objects as JSON is the default.
-
-### .highlighted()
-
-Returns a new instance of this `CeStringFormat` that will attempt to add coloring to the output
-string.
-
-In a browser, this will use CSS styling, and in Node.js this will use ANSI colors.
-
-## CeJsonFormat
-
-Serializes the entire ConError object as JSON with the following form:
+Returns a form of the ConError object serialized as JSON with the following form:
 
 ```json
 {
@@ -293,9 +217,40 @@ Serializes the entire ConError object as JSON with the following form:
 
 The stack frames are the same as produced by `conError.stack()`.
 
-### .indent(number)
+### Config methods
 
-Returns a new `CeJsonFormat` with the given indent level. Default indentation is 0 (minified).
+#### .maxDepth(number)
+
+Returns a new `CeFormat` which will only print the given number of causes.
+
+e.g., .maxDepth(1) will show the ConError as well as the first cause error and
+will not print any further causes. .maxDepth(0) only shows the referent ConError.
+
+#### .fullStacks()
+
+Returns a new `CeFormat` which will print full stack traces for every error. Default behavior
+is to attempt to limit the stack trace lines to those that are unique to each error.
+
+#### .indent(number)
+
+##### json only
+
+Returns a new `CeFormat` with the given indent level when writing as JSON. Default
+indentation is 0 (minified).
+
+#### .jsonContexts()
+
+##### string only
+
+Returns a new `CeFormat` that converts the context objects to JSON before printing
+as a string. The default is to write the objects as-is while in a browser, which may write
+them as '\[Object object\]'. Outside of a browser, writing objects as JSON is the default.
+
+#### .noColor()
+
+##### string only
+
+Returns a new `CeFormat` that will not attempt to add coloring to the output.
 
 ## CeAggregate
 
@@ -417,9 +372,9 @@ A few reasons for this:
    - large context objects are rendered very nicely in browser consoles
    - adding more context is easy without trying to put values into a string form
 
-### Additional custom formatting
+### Custom formatting
 
-This is intentionally omitted as well.
+Hooks for CeFormats are intentionally omitted as well.
 
 Since there's so little to a ConError object, one could easily write their own formatter that takes
-a ConError instead of trying to plug into some form of CeFormat API.
+a ConError instead of trying to plug into some form of formatter API.
