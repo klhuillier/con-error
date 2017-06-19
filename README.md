@@ -149,7 +149,8 @@ of the variables when the ConError is created.
 
 ### .stack()
 
-Returns the stack of this error as an array. The stack is of this form for a stack frame:
+Returns the stack of this error as an array, including stack frames of parent ConErrors.
+The stack is of this form for a stack frame:
 
 ```json
 {
