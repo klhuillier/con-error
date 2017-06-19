@@ -134,9 +134,9 @@ To stringify all chains of errors, `cerr.aggregate().chains().map(e => e.toStrin
 
 To stringify all individual errors, `cerr.aggregate().flattened().map(e => e.toString())`
 
-### .printers()
+### .formats()
 
-Returns a `CePrinters` object to provide a printer object for this ConError.
+Returns a `CeFormats` object to produce a `CeFormat`.
 
 ### .aggregate()
 
@@ -178,46 +178,47 @@ stack is of this form for a single stack frame:
 ]
 ```
 
-## CePrinters
+## CeFormats
 
-A provider of printers for a ConError. The returned printer will be specific to the ConError
-that created it.
+Created by a ConError with `.formats()`, the CeFormats has various ways of encoding the ConError. 
 
 ### .json()
 
-Returns a `CeJsonPrinter` that will write as a JSON object.
+Returns a form of the ConError that is formatted as a JSON object.
 
 ### .object()
 
-Returns a `CePojoPrinter` that will write as a plain JavaScript object. That is, an object with
+Returns a form of the ConError that is formatted as a plain JavaScript object. That is, an object with
 no values that cannot be encoded as JSON. i.e., no functions, no DOM elements, etc.
 
 ### .string()
 
-Returns a `CeStringPrinter` that will write as a plain string.
+Returns form of the ConError that is formatted as a plain string.
 
 ### .mixed()
 
-Returns a `CeMixedPrinter` that will write mostly the same as `CeStringPrinter`, but will not
+Returns form of the ConError that will write mostly the same as `CeStringFormat`, but will not
 serialize context objects so that in browser consoles the objects will listed as
 collapsible/expandable objects.
 
+## CeFormat
 
-## CePrinter
+Various forms of printable ConErrors, usually produced through `conError.formats()`.
 
-Various printers which can write the contents of a ConError.
+Not every format supports every method. e.g., a JSON printer does not support colorizing.
 
-Not every printer supports every method. e.g., a JSON printer does not support colorizing.
-
-All printers support:
+All formats support:
 
 ### .print((Console|WritableStream|(...any) => void))?)
 
-Simply encodes and writes the ConError to the given output.
+Writes the ConError that created this printer to the given output.
+
+The output is called once. For a very large error, this may mean buffering a large amount
+of data first.
 
 ### .maxDepth(number)
 
-Returns a new instance of the printer which will only print the given number
+Returns a new instance of the CeFormat which will only print the given number
 of causes.
 
 e.g., .maxDepth(1) will show the ConError as well as the first cause error and
@@ -225,12 +226,49 @@ will not print any further causes. .maxDepth(0) only shows the referent ConError
 
 ### .fullStacks()
 
-Returns a new printer which will print full stack traces for every error. Default behavior
+Returns a new CeFormat which will print full stack traces for every error. Default behavior
 is to attempt to limit the stack trace lines to those that are unique to each error.
 
-## CeJsonPrinter
+## CeObjectFormat
 
-Serializes the entire ConError object as Json with the following form:
+This is the default format for `conError.print()` in a browser.
+
+Writes a JS object containing the entirety of the ConError's hierarchy.
+
+This is similar to calling `JSON.parse()` with the output of `conError.formats().json().print()`,
+but is not guaranteed to produce exactly the same result.
+
+When written in a browser console, this may support property collapsing/expansion.
+
+## CeStringFormat
+
+This is the default format for `conError.print()` in Node.js.
+
+Writes a string form of the error and stack traces.
+
+### .highlighted()
+
+Returns a new instance of this `CeStringFormat` that will attempt to add coloring to the output
+string.
+
+In a browser, this will use CSS styling, and in Node.js this will use ANSI colors.
+
+## CeMixedFormat
+
+This is a mix between `CeObjectFormat` and `CeStringFormat`, except that when it prints the context objects, it
+will print them as objects and not as serialized forms of the objects. In browser consoles, this
+makes them collapsible/expandable.
+
+### .highlighted()
+
+Returns a new instance of this `CeMixedFormat` that will attempt to add coloring to the output
+string.
+
+In a browser, this will use CSS styling, and in a terminal this will use ANSI colors.
+
+## CeJsonFormat
+
+Serializes the entire ConError object as JSON with the following form:
 
 ```json
 {
@@ -257,63 +295,24 @@ Serializes the entire ConError object as Json with the following form:
 }
 ```
 
-Without calling `.indent`, there is no guarantee of whitespaces, only that the returned
-string is valid JSON.
-
-The stack frames are the same as produced by `.stack()`.
+The stack frames are the same as produced by `conError.stack()`.
 
 ### .indent(number)
 
-Returns a new CeJsonPrinter with the given indent level. undefined or 0 will return
-a minified form.
-
-## CePojoPrinter
-
-Writes a JS object containing the entirety of the ConError's hierarchy. This
-is similar to calling `JSON.parse()` with the output of `conError.printers().json().print()`,
-but is not guaranteed to produce exactly the same result. The result's constructors will all
-be `Object` and no non-serializable values will be returned, such as DOM elements or functions:
-`$('<div>')` or `() => false`.
-
-When written in a browser console, this may support property collapsing/expansion.
-
-## CeStringPrinter
-
-Writes a string form of the error and stack traces.
-
-### .highlighted()
-
-Returns a new instance of this printer that will attempt to add coloring to the output
-string.
-
-In a browser, this will use CSS styling, and in a terminal this will use ANSI colors.
-
-## CeMixedPrinter
-
-This is mostly a subtype of CeStringPrinter, except that when it prints the context objects, it
-will print them as objects and not as serialized forms of the objects. In browser consoles, this
-makes them collapsible/expandable.
-
-### .highlighted()
-
-Same as `CeStringPrinter`.
-
-Returns a new instance of this printer that will attempt to add coloring to the output
-string.
-
-In a browser, this will use CSS styling, and in a terminal this will use ANSI colors.
+Returns a new `CeJsonFormat` with the given indent level. Default indentation is 0 (minified).
 
 ## CeAggregate
 
 ### .chains()
 
-This returns an array of new ConError instances where:
-- the referent ConError is the head of each chain
-- each leaf in the hierarchy is returned
-- each ConError in the new chain has exactly one child
-- each chain ends with an object that is either not a ConError or was a ConError with no cause objects
+This returns an unsorted array of new ConError instances representing a full stack trace from a root
+cause up to the referent error. 
 
-The order of the array is not deterministic.
+More specifically, where a "root cause" is either a ConError with no cause, or another thrown type:
+- every element of the array is a ConError with the same message and context as the referent ConError
+- every element of the array has a chain where every ConError instance has exactly zero or one causes
+- every element of the array ends with an original root cause
+- every root cause of the original ConError is returned exactly once
 
 For example, if B failed because of two async functions, C and D, the returned array
 could contain two ConError instances with hierarchies like this:
@@ -329,10 +328,8 @@ after: [
 
 ### .flatten()
 
-Returns an array of the referent ConError as well as all Error types listed as causes in the
-error hierarchy.
-
-The order is not deterministic.
+Returns an unsorted array of the referent ConError as well as all Error types listed as causes
+in the error hierarchy.
 
 ## ConError's Promise-like behavior
 
@@ -359,6 +356,14 @@ ConError appears as an `instanceof Error`. It is not an `instanceof Promise`.
 conError instanceof Error; // true
 conError instanceof Promise; // false
 (conError.then(() => {}, () => {})) instanceof Promise; // true
+```
+
+When the differences are important, one can easily wrap it in a native Promise:
+
+```javascript
+const rejected = Promise.reject(new ConError());
+Promise.resolve(rejected) === rejected; // true
+rejected instanceof Promise; // true
 ```
 
 ### ConError.all(Promise[], string?, {}?)
