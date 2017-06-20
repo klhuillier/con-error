@@ -2,19 +2,17 @@
 
 ###### Give context to your errors or the bunny gets it
 
-## Features
+# Features
 
-### Basic features
+## Basic features
 
-ConError:
+- rethrow and chain errors
+- include an object with values from the point of an error
+- behaves similar to a rejected Promise and can be used as one
 - by default, attempts to avoid noise in stack traces by listing a full
   stack trace interleaved with exceptions thrown at each point in the stack
-- behaves similar to a rejected Promise and can usually be returned as one
-- allows including any plain object
-- allows chaining errors together
-- ships with multiple printing and aggregation methods
 
-### Stack traces
+## Stack traces
 
 As an example, a call chain may be `refreshScreen <- refreshCart <- load <- get`.
 If every method catches and rethrows with additional context, the resulting ConError would
@@ -45,9 +43,9 @@ Caused by:
 In the above example, rather than showing the complete stack trace for the innermost error,
 ConError attempts to limit the stacktrace displayed to the chains unique to each error.
 
-## API
+# API
 
-### Basic Usage
+## Basic Usage
 
 ```javascript
 const ConError = require('con-error');
@@ -61,7 +59,7 @@ try {
 }
 ```
 
-### new ConError((Error|Error[])?, string?, {}?)
+## `new ConError((Error|Error[])?, string?, {}?)`
 
 ConError accepts an Error or array of Errors, a message, and an arbitrary object. All
 values are optional, but any that are given must appear in the expected order.
@@ -99,20 +97,20 @@ return promise
   }));
 ```
 
-### .throw()
+## `.throw()`
 
 `.throw` does as it says, it will throw the ConError.
 
 Used when the `throw` keyword is not permitted, e.g., in a lamdba block:
 
 ```javascript
-const assertPositive = number =>
+const clampTo100 = number =>
   number > 0 ?
-    number :
+    Math.min(number, 100) :
     new ConError('number not positive', {number: number}).throw();
 ``` 
 
-### .toString()
+## `.toString()`
 
 Returns a string containing the entire stack trace of the ConError instance. At each level in
 the hierarchy, it will only select and stringify the first cause.
@@ -121,24 +119,24 @@ To stringify all chains of errors, `cerr.aggregate().chains().map(e => e.toStrin
 
 To stringify all individual errors, `cerr.aggregate().flattened().map(e => e.toString())`
 
-### .formats()
+## `.formats()`
 
 Returns a `CeFormats` instance to produce outputs for this ConError.
 
-### .aggregate()
+## `.aggregate()`
 
 Returns a `CeAggregate` instance for this ConError.
 
-### .causes()
+## `.causes()`
 
 Returns a list of nested errors, if any. If there are none, this is an empty array.
 
-### .message()
+## `.message()`
 
 Returns the message the ConError was constructed with. If there was none, this is
 an empty string.
 
-### .context()
+## `.context()`
 
 Returns the contextual object the ConError was constructed with. If there was none,
 this is an empty object.
@@ -147,7 +145,7 @@ The object returned here is the same context object that is held by the ConError
 This is as opposed to the constructor parameter, which is cloned to capture the state
 of the variables when the ConError is created.
 
-### .stack()
+## `.stack()`
 
 Returns the stack of this error as an array, including stack frames of parent ConErrors.
 The stack is of this form for a stack frame:
@@ -165,21 +163,21 @@ The stack is of this form for a stack frame:
 
 Like most stack traces, the inner-most call is the first element of the array.
 
-## CeFormats
+# CeFormats
 
 Created by a ConError with `.formats()`, the CeFormats has various ways of encoding the ConError.
 Some methods only apply to some formats.
 
-### Output methods
+## Output methods
 
-#### .string()
+## `.string()`
 
 Returns a form of the ConError that is formatted as a plain string.
 
 By default, in a browser, this will not serialize context objects so that the objects will listed as
 collapsible/expandable objects.
 
-#### .object()
+## `.object()`
 
 Returns a form of the ConError that is formatted as a plain JavaScript object. That is, an object with
 no values that cannot be encoded as JSON. i.e., no functions, no DOM elements, etc.
@@ -187,7 +185,7 @@ no values that cannot be encoded as JSON. i.e., no functions, no DOM elements, e
 In Node.js, this is similar to the `.json` formatter because it transforms objects into JSON when
 printed to a terminal.
 
-#### .json()
+## `.json()`
 
 Returns a form of the ConError object serialized as JSON with the following form:
 
@@ -218,44 +216,44 @@ Returns a form of the ConError object serialized as JSON with the following form
 
 The stack frames are the same as produced by `conError.stack()`.
 
-### Config methods
+## Config methods
 
-#### .maxDepth(number)
+## `.maxDepth(number)`
 
 Returns a new `CeFormat` which will only print the given number of causes.
 
 e.g., .maxDepth(1) will show the ConError as well as the first cause error and
 will not print any further causes. .maxDepth(0) only shows the referent ConError.
 
-#### .fullStacks()
+## `.fullStacks()`
 
 Returns a new `CeFormat` which will print full stack traces for every error. Default behavior
 is to attempt to limit the stack trace lines to those that are unique to each error.
 
-#### .indent(number)
+## `.indent(number)`
 
-##### json only
+#### json only
 
 Returns a new `CeFormat` with the given indent level when writing as JSON. Default
 indentation is 0 (minified).
 
-#### .jsonContexts()
+## `.jsonContexts()`
 
-##### string only
+#### string only
 
 Returns a new `CeFormat` that converts the context objects to JSON before printing
 as a string. The default is to write the objects as-is while in a browser, which may write
 them as '\[Object object\]'. Outside of a browser, writing objects as JSON is the default.
 
-#### .noColor()
+## `.noColor()`
 
-##### string only
+#### string only
 
 Returns a new `CeFormat` that will not attempt to add coloring to the output.
 
 ## CeAggregate
 
-### .chains()
+### `.chains()`
 
 This returns an unsorted array of new ConError instances representing a full stack trace from a root
 cause up to the referent error. 
@@ -278,47 +276,48 @@ after: [
 ]
 ```
 
-### .flatten()
+## `.flatten()`
 
 Returns an unsorted array of the referent ConError as well as all Error types listed as causes
 in the error hierarchy.
 
-## ConError's Promise-like behavior
+# Promise-like behavior
 
-The `.then` function mainly exists to make ConError appear Promise-like. The return
+## Caveats
+
+The `.then` function makes ConError appear Promise-like to scripts. The return
 values are native es6 Promises (or polyfills) and can be chained as usual.
 
-**Caveats: Promise differences**
-
-The EcmaScript standard checks for internal states which cannot be set by script.
-The return value of `.then` is a native Promise, so the following comparisons evaluate
-to true:
+With native Promises, this has subtle differences. The EcmaScript standard checks for
+internal states which cannot be set by script.
 
 ```javascript
-Promise.resolve(conError) !== conError; // true
-
-const native = conError.then(() => {}, () => {});
-
-Promise.resolve(native) === native; // true
+Promise.resolve(conError) === conError; // true with some Promise libraries
+Promise.resolve(conError) !== conError; // true with native Promise
 ```
 
-ConError appears as an `instanceof Error`. It is not an `instanceof Promise`.
+Furthermore, the inheritance chain of ConError is an Error and not a Promise.
+As a result, testing with `instanceof` will indicate it is not a Promise.
 
 ```javascript
 conError instanceof Error; // true
 conError instanceof Promise; // false
-(conError.then(() => {}, () => {})) instanceof Promise; // true
 ```
 
-When the differences are important, one can easily wrap it in a native Promise:
+When the differences are important, one can easily make it a native Promise:
 
 ```javascript
+// with Promise.resolve
 const rejected = Promise.reject(new ConError());
 Promise.resolve(rejected) === rejected; // true
 rejected instanceof Promise; // true
+// or with a no-op then:
+const nooped = new ConError().then();
+Promise.resolve(nooped) === nooped; // true
+nooped instanceof Promise; // true
 ```
 
-### ConError.all(Promise[], string?, {}?)
+## `ConError.all(Promise[], string?, {}?)`
 
 Similar to `Promise.all`, except when rejected, the ConError will contain *all* rejected
 promises, not just the first.
@@ -332,7 +331,7 @@ ConError.all(promises, 'failed in loading auction lot data', {lotId: lotId})
 
 The returned Promise from `ConError.all` is a native es6 Promise.
 
-### .then(fn, fn)
+## `.then(fn, fn)`
 
 The first callback of `.then` is never called, since a ConError instance is always rejected.
 
@@ -347,35 +346,8 @@ fnThatReturnsConError()
   .then(opt => applyOption(opt));
 ```
 
-### .catch(fn)
+## `.catch(fn)`
 
 The callback is always called after the interpreter has settled.
 
 The return value is a native Promise which will be resolved or rejected based on the callback.
-
-## Miscellany
-
-### Message formatted strings
-
-sprintf messages are intentionally not supported. Most sprintf placeholders are to hold
-things like IDs, and these should be listed in contextual objects.
-
-A few reasons for this:
-
-- The formal parameter list of the constructor is already long enough (Error, string, object)
-   without making it variadic for sprintf arguments.
-- You can still use a sprintf function while building a ConError object, e.g.,
-   `new ConError(sprintf('user ID %d is invalid', userId))`
-- sprintf arguments for errors are often to insert local values into the message string, which
-   is what a context object is intended for:
-   `new ConError('user ID is invalid', {userId: userId})`. This has the added benefits:
-   - the message string remains constant and more easily grepped
-   - large context objects are rendered very nicely in browser consoles
-   - adding more context is easy without trying to put values into a string form
-
-### Custom formatting
-
-Hooks for CeFormats are intentionally omitted as well.
-
-Since there's so little to a ConError object, one could easily write their own formatter that takes
-a ConError instead of trying to plug into some form of formatter API.
