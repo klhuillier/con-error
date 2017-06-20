@@ -252,9 +252,9 @@ them as '\[object Object\]'. Outside of a browser, writing objects as JSON is th
 
 Returns a new `CeFormat` that will not attempt to add coloring to the output.
 
-## CeAggregate
+# CeAggregate
 
-### `.chains()`
+## `.chains()`
 
 This returns an unsorted array of new ConError instances representing a full stack trace from a root
 cause up to the referent error. 
