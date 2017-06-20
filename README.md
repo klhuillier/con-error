@@ -87,7 +87,7 @@ try {
 }
 ```
 
-Usage as a rejected Promise:
+Usage as a rejected Promise, chaining a previous error:
 
 ```javascript
 return promise
@@ -148,20 +148,26 @@ of the variables when the ConError is created.
 ## `.stack()`
 
 Returns the stack of this error as an array, including stack frames of parent ConErrors.
-The stack is of this form for a stack frame:
+The stack is of this form for a single stack frame:
 
 ```json
 {
-  "function": "refresh",
-  "script": "app/store/cart.js",
-  "line": 50,
-  "column": 8,
-  "eval": false,
-  "native": false
+  "frames": [
+    {
+      "function": "refresh",
+      "script": "app/store/cart.js",
+      "line": 50,
+      "column": 8,
+      "eval": false,
+      "native": false
+    }
+  ]
 }
 ```
 
-Like most stack traces, the inner-most call is the first element of the array.
+Like most stack traces, the inner-most call is the first element of the "frames" array.
+
+The indentation and spacing may vary, but the result will be valid JSON.
 
 # CeFormats
 
@@ -194,21 +200,23 @@ Returns a form of the ConError object serialized as JSON with the following form
   "constructor": "ConError",
   "message": "",
   "context": {},
-  "stack": [
-    {
-      "function": "",
-      "script": "",
-      "line": 0,
-      "column": 0,
-      "eval": false,
-      "native": false
-    }
-  ],
+  "stack": {
+    "frames": [
+      {
+        "function": "",
+        "script": "",
+        "line": 0,
+        "column": 0,
+        "eval": false,
+        "native": false
+      }
+    ]
+  },
   "causes": [
     {
       "constructor": "Error",
       "message": "",
-      "stack": []
+      "stack": {"frames": []}
     }
   ]
 }
@@ -243,7 +251,7 @@ indentation is 0 (minified).
 
 Returns a new `CeFormat` that converts the context objects to JSON before printing
 as a string. The default is to write the objects as-is while in a browser, which may write
-them as '\[Object object\]'. Outside of a browser, writing objects as JSON is the default.
+them as '\[object Object\]'. Outside of a browser, writing objects as JSON is the default.
 
 ## `.noColor()`
 
@@ -261,7 +269,7 @@ cause up to the referent error.
 More specifically, where a "root cause" is either a ConError with no cause, or another thrown type:
 - every element of the array is a ConError with the same message and context as the referent ConError
 - every element of the array has a chain where every ConError instance has exactly zero or one causes
-- every element of the array ends with an original root cause
+- every element of the array has a chain that ends with an original root cause
 - every root cause of the original ConError is returned exactly once
 
 For example, if B failed because of two async functions, C and D, the returned array
@@ -278,8 +286,10 @@ after: [
 
 ## `.flatten()`
 
-Returns an unsorted array of the referent ConError as well as all Error types listed as causes
+Returns an unsorted array of the referent ConError as well as all objects listed as causes
 in the error hierarchy.
+
+ConError instances are not altered and will contain their original lists of causes.
 
 # Promise-like behavior
 

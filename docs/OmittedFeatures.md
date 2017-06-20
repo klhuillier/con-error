@@ -21,8 +21,15 @@ the NPM module `sprintf-js` allows you to do this:
 
 ## Custom formatting
 
-An API for a custom `CeFormat` is intentionally omitted. There is nothing special a
-`CeFormat` needs for its work, and a custom type is easily created without such an API.
+An API for extensive configuration of `CeFormat` or custom types is intentionally
+omitted. There is nothing special a `CeFormat` needs for its work, and a custom type
+is easily created without such an API.
+
+Creating a full API that can handle any configuration would explode the number of
+methods. With the number of filters, mappings, stack filtering and mapping, etc,
+it's far more than this library is expected to do. With a domain-specific use
+(e.g., creating log levels or UI/service borders), it's best to just create a
+domain-specific formatter.
 
 I would suggest using `CeObjectFormat` to create a plain JS object form first,
 then mapping/filtering/etc from that object.
