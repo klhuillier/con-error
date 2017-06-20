@@ -226,13 +226,6 @@ The stack frames are the same as produced by `conError.stack()`.
 
 ## Config methods
 
-## `.maxDepth(number)`
-
-Returns a new `CeFormat` which will only print the given number of causes.
-
-e.g., .maxDepth(1) will show the ConError as well as the first cause error and
-will not print any further causes. .maxDepth(0) only shows the referent ConError.
-
 ## `.fullStacks()`
 
 Returns a new `CeFormat` which will print full stack traces for every error. Default behavior
