@@ -31,7 +31,7 @@ Caused by: Error: error getting cart details
 Caused by:
   context: {
     statusCode: 500,
-    response: [a largeObject],
+    response: [a large Object],
     cartId: 1,
     sessionId: 'e30d...'
   }
@@ -65,7 +65,7 @@ ConError accepts an Error or array of Errors, a message, and an arbitrary object
 values are optional, but any that are given must appear in the expected order.
 
 All three parameters have distinct purposes in diagnosing errors:
-- nested errors hold the state for where the original error occurred, lower-level
+- causes (nested errors) hold the state for where the original error occurred at a lower level
 - message is useful for giving a general description of what was being attempted in
   the frame this error was thrown from (it may even be distinct enough to locate the
   exact line in the application with grep)
@@ -74,8 +74,8 @@ All three parameters have distinct purposes in diagnosing errors:
   
 **ConError makes a deep clone of the given contextual object on creation.** The reason for
 doing this deep clone is to avoid problems where values visible to the ConError creation 
-point are altered before the ConError is printed or inspected in a debugger. With very large
-objects, you probably will want to limit the properties given as context.
+frame are altered before the ConError is printed or inspected in a debugger. With very large
+objects, you may want to limit the properties given as context.
 
 Typical usage would be:
 
@@ -286,12 +286,13 @@ ConError instances are not altered and will contain their original lists of caus
 
 # Promise-like behavior
 
+The existence of the `.then` function makes ConError appear Promise-like to scripts.
+The return value of `.then` is a native es6 Promise (or polyfill) and can be chained
+as usual.
+
 ## Caveats
 
-The `.then` function makes ConError appear Promise-like to scripts. The return
-values are native es6 Promises (or polyfills) and can be chained as usual.
-
-With native Promises, this has subtle differences. The EcmaScript standard checks for
+With native Promises, there are subtle differences. The EcmaScript standard checks for
 internal states which cannot be set by script.
 
 ```javascript
@@ -299,8 +300,8 @@ Promise.resolve(conError) === conError; // true with some Promise libraries
 Promise.resolve(conError) !== conError; // true with native Promise
 ```
 
-Furthermore, the inheritance chain of ConError is an Error and not a Promise.
-As a result, testing with `instanceof` will indicate it is not a Promise.
+The inheritance chain of ConError is an Error and not a Promise. As a result, testing
+with `instanceof` will indicate it is not a Promise.
 
 ```javascript
 conError instanceof Error; // true
@@ -310,7 +311,7 @@ conError instanceof Promise; // false
 When the differences are important, one can easily make it a native Promise:
 
 ```javascript
-// with Promise.resolve
+// with Promise.reject
 const rejected = Promise.reject(new ConError());
 Promise.resolve(rejected) === rejected; // true
 rejected instanceof Promise; // true
