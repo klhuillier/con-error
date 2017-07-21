@@ -47,6 +47,8 @@ function ConErrorFactory(ConError) {
 
     sortedArgs.push(capturedError);
 
+    // TODO Maybe push dedupe here as well?
+
     return new ConError(...sortedArgs);
   }
 
