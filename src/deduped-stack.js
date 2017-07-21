@@ -36,4 +36,10 @@ const dedupe = stacks => stacks.map((stack, idx) => {
   return stack.filter((elem, idx) => idx >= lastIdx);
 });
 
-module.exports = dedupe;
+function DedupedStack(origStack) {
+  this.stack = () => dedupe(origStack);
+}
+
+const newDedupedStack = origStack => new DedupedStack(origStack);
+
+module.exports = newDedupedStack;

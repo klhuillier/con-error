@@ -1,27 +1,19 @@
-function conErrors(newStackFrames, formats, aggregates) {
+function conErrors(formats, aggregates) {
   /**
    * @param causes [Error[]] caught errors that are wrapped in this new one
    * @param message [string] a plain string describing the error
    * @param context [{}] an object capturing state from the frame the error is thrown from
-   * @param capturedError [Error] error containing the stack when this ConError was created
+   * @param capturedFrames [CachedStackFrames] error containing the stack when this ConError was created
    * @constructor
    */
-  function ConError(causes, message, context, capturedError) {
-    if (!(this instanceof ConError)) {
-      throw new ConError(new ConError(causes, message, context), 'ConError must be called with new');
-    }
-
-    let cachedStackFrames;
-    const stackFrames = () => cachedStackFrames =
-      (cachedStackFrames || newStackFrames(capturedError));
-
+  function ConError(causes, message, context, capturedFrames) {
     this.causes = () => causes;
 
     this.message = () => message;
 
     this.context = () => context;
 
-    this.stack = () => stackFrames().toObject();
+    this.stack = () => capturedFrames.toObject();
 
     this.throw = () => {throw this;};
 
