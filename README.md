@@ -123,9 +123,9 @@ To stringify all individual errors, `cerr.aggregate().flattened().map(e => e.toS
 
 Returns a `CeFormats` instance to produce outputs for this ConError.
 
-## `.aggregate()`
+## `.aggregates()`
 
-Returns a `CeAggregate` instance for this ConError.
+Returns a `CeAggregates` instance for this ConError.
 
 ## `.causes()`
 
@@ -208,7 +208,8 @@ Returns a form of the ConError object serialized as JSON with the following form
         "line": 0,
         "column": 0,
         "eval": false,
-        "native": false
+        "native": false,
+        "constructor": false
       }
     ]
   },
@@ -252,7 +253,7 @@ them as '\[object Object\]'. Outside of a browser, writing objects as JSON is th
 
 Returns a new `CeFormat` that will not attempt to add coloring to the output.
 
-# CeAggregate
+# CeAggregates
 
 ## `.chains()`
 
