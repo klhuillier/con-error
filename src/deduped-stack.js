@@ -16,10 +16,6 @@
 // Simple way is to work backwards from root.
 // Omit all dupes shared by a parent, but do not de-dupe parents
 
-function DedupedStack(origStack) {
-  this.origStack = origStack;
-}
-
 const findIdx = (arr, predicate) => arr.reduce((acc, element, idx) => {
   if (acc === idx - 1 && predicate(element)) {
     return idx;
@@ -34,10 +30,10 @@ const match = (parentElem, elem) =>
 
 const findMatchIdxPredicate = parent => stack => findIdx(stack, elem => match(parent, elem) >= 0);
 
-DedupedStack.prototype.stacks = stacks => stacks.map((stack, idx) => {
+const dedupe = stacks => stacks.map((stack, idx) => {
   const parent = idx < (stacks.length - 1) ? stacks[idx + 1] : [];
   const lastIdx = findIdx(parent, findMatchIdxPredicate);
   return stack.filter((elem, idx) => idx >= lastIdx);
 });
 
-module.exports = DedupedStack;
+module.exports = dedupe;

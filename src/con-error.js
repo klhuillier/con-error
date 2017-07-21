@@ -1,4 +1,4 @@
-function conErrors(stackFrames, formats, aggregates) {
+function conErrors(newStackFrames, formats, aggregates) {
   /**
    * @param causes [Error[]] caught errors that are wrapped in this new one
    * @param message [string] a plain string describing the error
@@ -11,17 +11,21 @@ function conErrors(stackFrames, formats, aggregates) {
       throw new ConError(new ConError(causes, message, context), 'ConError must be called with new');
     }
 
+    let cachedStackFrames;
+    const stackFrames = () => cachedStackFrames =
+      (cachedStackFrames || newStackFrames(capturedError));
+
     this.causes = () => causes;
 
     this.message = () => message;
 
     this.context = () => context;
 
-    this.stack = () => {};
+    this.stack = () => stackFrames().toObject();
 
     this.throw = () => {throw this;};
 
-    this.toString = () => {};
+    this.toString = () => ''+this.stack();
 
     this.formats = () => {};
 
