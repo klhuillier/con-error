@@ -1,4 +1,4 @@
-const ConError = require('../src/con-error');
+const ConError = require('../src/index');
 
 const toError = cerr => {
   try {
@@ -11,6 +11,12 @@ const toError = cerr => {
 
 describe('ConError', () => {
   it('has no tests yet', () => {});
+
+  it('should be a ConError', () => {
+    const ce = new ConError('ASDF', {code: 127});
+    console.dir(ce.stack());
+  });
+
   // describe('Contexts', () => {
   //   it('thrown simple context only', () => {
   //     const expectedItemId = 1;

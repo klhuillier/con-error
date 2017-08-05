@@ -1,4 +1,4 @@
-function conErrors(formats, aggregates) {
+function conErrors(Formats, Aggregates) {
   /**
    * @param causes [Error[]] caught errors that are wrapped in this new one
    * @param message [string] a plain string describing the error

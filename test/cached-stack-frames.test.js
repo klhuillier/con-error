@@ -1,7 +1,9 @@
-const errorStackParser = require('error-stack-parser');
-const cachedStackFramesFactory = require('../src/cached-stack-frames');
 const stacks = require('./stacks');
-const CachedStackFrames = cachedStackFramesFactory(errorStackParser);
+const CachedStackFrames = require('../src/cached-stack-frames')(
+  require('../src/remapped-stack-frames')(
+    require('error-stack-parser')
+  )
+);
 
 describe('cachedStackFrames', () => {
   it('should map stack traces as expected', () => {
