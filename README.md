@@ -127,27 +127,27 @@ Returns a `CeFormats` instance to produce outputs for this ConError.
 
 Returns a `CeAggregates` instance for this ConError.
 
-## `.causes()`
+## `.causes`
 
-Returns a list of nested errors, if any. If there are none, this is an empty array.
+A list of nested errors, if any. If there are none, this is an empty array.
 
-## `.message()`
+## `.message`
 
-Returns the message the ConError was constructed with. If there was none, this is
+The message the ConError was constructed with. If there was none, this is
 an empty string.
 
-## `.context()`
+## `.context`
 
-Returns the contextual object the ConError was constructed with. If there was none,
+The contextual object the ConError was constructed with. If there was none,
 this is an empty object.
 
 The object returned here is the same context object that is held by the ConError.
 This is as opposed to the constructor parameter, which is cloned to capture the state
 of the variables when the ConError is created.
 
-## `.stack()`
+## `.stack`
 
-Returns the stack of this error as an array, including stack frames of parent ConErrors.
+The stack of this error as an array, including stack frames of parent ConErrors.
 The stack is of this form for a single stack frame:
 
 ```json
