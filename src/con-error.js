@@ -7,13 +7,13 @@ function conErrors(Formats, Aggregates) {
    * @constructor
    */
   function ConError(causes, message, context, capturedFrames) {
-    this.causes = () => causes;
+    this.causes = causes;
 
-    this.message = () => message;
+    this.message = message;
 
-    this.context = () => context;
+    this.context = context;
 
-    this.stack = () => capturedFrames.toObject();
+    this.stack = capturedFrames.toObject();
 
     this.throw = () => {throw this;};
 
@@ -21,7 +21,7 @@ function conErrors(Formats, Aggregates) {
 
     this.formats = () => {};
 
-    this.aggregate = () => {};
+    this.aggregate = () => new Aggregates(this);
   }
 
   ConError.prototype = Object.create(Error.prototype, {});
