@@ -1,10 +1,44 @@
 {
   "name": "con-error",
   "version": "0.0.1",
+  "scripts": {
+    "build-mkdist": "mkdir -p dist",
+    "build-statics": "cp LICENSE.md README.md dist",
+    "build-bundle": "./node_modules/.bin/browserify -d src/index -o dist/index.js -s ConError",
+    "build-minify": "./node_modules/.bin/uglifyjs dist/index.js -cmo dist/index.min.js",
+    "build": "npm run build-mkdist && npm run build-statics && npm run build-bundle && npm run build-minify"
+  },
   "dependencies": {
     "error-stack-parser": "~2.0.1"
   },
   "devDependencies": {
-    "jest": "~20.0.4"
+    "babel-preset-env": "^1.6.0",
+    "babelify": "^7.3.0",
+    "browserify": "^14.4.0",
+    "jest": "~20.0.4",
+    "uglify-js": "^3.0.27"
+  },
+  "browserify": {
+    "transform": [
+      [
+        "babelify",
+        {
+          "presets": [
+            [
+              "env",
+              {
+                "targets": {
+                  "browsers": [
+                    "last 2 versions",
+                    "safari >= 7",
+                    "ie >= 10"
+                  ]
+                }
+              }
+            ]
+          ]
+        }
+      ]
+    ]
   }
 }
