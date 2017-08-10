@@ -1,4 +1,4 @@
-function conErrorProvider(resolveCeArgs) {
+function conErrorProvider(resolveCeArgs, ceChains) {
   // To preserve identity of the constructor and allow as much flexibility as possible for arguments
   // accepted, there are two ways to call the ConError ctor: the user-visible form and the normalized
   // internal form. I really hate the way this looks, but it seems like the best way to preserve the
@@ -16,13 +16,13 @@ function conErrorProvider(resolveCeArgs) {
     if (!argsAreNormalized(resolvedArgs, capturedError)) {
       return new ConError(resolveCeArgs(Array.from(arguments)), new Error());
     }
-    Object.assign(this, {
-      causes: resolvedArgs.causes,
-      message: resolvedArgs.message,
-      context: resolvedArgs.context,
-      stack: capturedError.stack,
-      throw: () => {throw this;},
-    });
+
+    this.causes = resolvedArgs.causes;
+    this.message = resolvedArgs.message;
+    this.context = resolvedArgs.context;
+    this.stack = capturedError.stack;
+    this.throw = () => {throw this;};
+    this.chains = () => ceChains(this);
   }
 
   ConError.prototype = Object.create(Error.prototype, {});
