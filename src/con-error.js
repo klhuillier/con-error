@@ -1,27 +1,28 @@
-function conErrors(newFormat, Aggregates) {
-  /**
-   * @param causes [Error[]] caught errors that are wrapped in this new one
-   * @param message [string] a plain string describing the error
-   * @param context [{}] an object capturing state from the frame the error is thrown from
-   * @param capturedFrames [CachedStackFrames] error containing the stack when this ConError was created
-   * @constructor
-   */
-  function ConError(causes, message, context, capturedFrames) {
-    this.causes = causes;
+function conErrorProvider(resolveCeArgs) {
+  // To preserve identity of the constructor and allow as much flexibility as possible for arguments
+  // accepted, there are two ways to call the ConError ctor: the user-visible form and the normalized
+  // internal form. I really hate the way this looks, but it seems like the best way to preserve the
+  // identity (err instanceof ConError) while ensuring the args are as expected. (I *could* use a
+  // separate fn and require users do `createConError`, `ConError.create`, etc, but I also hate that.)
 
-    this.message = message;
+  const argsAreNormalized = (resolvedArgs, capturedError) =>
+    typeof resolvedArgs === 'object' &&
+    Array.isArray(resolvedArgs.causes) &&
+    typeof resolvedArgs.message === 'string' &&
+    typeof resolvedArgs.context === 'object' &&
+    capturedError instanceof Error;
 
-    this.context = context;
-
-    this.stack = capturedFrames.toObject();
-
-    this.throw = () => {throw this;};
-
-    this.toString = () => ''+this.stack;
-
-    this.formats = () => newFormat(this);
-
-    this.aggregate = () => new Aggregates(this);
+  function ConError(resolvedArgs, capturedError) {
+    if (!argsAreNormalized(resolvedArgs, capturedError)) {
+      return new ConError(resolveCeArgs(Array.from(arguments)), new Error());
+    }
+    Object.assign(this, {
+      causes: resolvedArgs.causes,
+      message: resolvedArgs.message,
+      context: resolvedArgs.context,
+      stack: capturedError.stack,
+      throw: () => {throw this;},
+    });
   }
 
   ConError.prototype = Object.create(Error.prototype, {});
@@ -31,4 +32,4 @@ function conErrors(newFormat, Aggregates) {
   return ConError;
 }
 
-module.exports = conErrors;
+module.exports = conErrorProvider;
