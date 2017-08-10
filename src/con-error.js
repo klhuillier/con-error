@@ -1,4 +1,4 @@
-function conErrors(Formats, Aggregates) {
+function conErrors(newFormat, Aggregates) {
   /**
    * @param causes [Error[]] caught errors that are wrapped in this new one
    * @param message [string] a plain string describing the error
@@ -17,9 +17,9 @@ function conErrors(Formats, Aggregates) {
 
     this.throw = () => {throw this;};
 
-    this.toString = () => ''+this.stack();
+    this.toString = () => ''+this.stack;
 
-    this.formats = () => {};
+    this.formats = () => newFormat(this);
 
     this.aggregate = () => new Aggregates(this);
   }

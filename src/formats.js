@@ -44,7 +44,7 @@ Formats.prototype.noColor = function() {
 };
 
 Formats.prototype.json = function() {
-  return stringify(this.error.stack(), this.config.indent);
+  return stringify(this.error.stack, this.config.indent);
 };
 
 function newFormat(error) {

@@ -8,6 +8,7 @@
     "build-minify": "./node_modules/.bin/uglifyjs dist/index.js -cmo dist/index.min.js",
     "build": "npm run build-mkdist && npm run build-statics && npm run build-bundle && npm run build-minify"
   },
+  "main": "./dist/index.min.js",
   "dependencies": {
     "error-stack-parser": "~2.0.1"
   },
