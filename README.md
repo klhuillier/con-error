@@ -115,9 +115,7 @@ const clampTo100 = number =>
 Returns a string containing the entire stack trace of the ConError instance. At each level in
 the hierarchy, it will only select and stringify the first cause.
 
-To stringify all chains of errors, `cerr.aggregate().chains().map(e => e.toString())`
-
-To stringify all individual errors, `cerr.aggregate().flattened().map(e => e.toString())`
+To stringify all sequences of errors, `cerr.sequences().all().map(e => e.toString())`
 
 ## `.formats()`
 

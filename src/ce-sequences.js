@@ -1,27 +1,27 @@
-function ceChainsProvider() {
-  function ceChains(conError) {
+function ceSequencesProvider() {
+  function ceSequences(conError) {
     return {
-      firstSequence: () => {
+      first: () => {
         if (!Array.isArray(conError.causes) || conError.causes.length <= 0) {
           return [conError];
         }
         const firstCause = conError.causes[0];
-        if (typeof firstCause.chains === 'function') {
-          return [conError, ...firstCause.chains().firstSequence()];
+        if (typeof firstCause.sequences === 'function') {
+          return [conError, ...firstCause.sequences().first()];
         } else {
           return [conError, firstCause];
         }
       },
-      allSequences: () => {
+      all: () => {
         if (!Array.isArray(conError.causes) || conError.causes.length === 0) {
           return [[conError]];
         }
         const result = [];
         conError.causes.forEach(cause => {
-          if (typeof cause.chains !== 'function') {
+          if (typeof cause.sequences !== 'function') {
             result.push([conError, cause]);
           } else {
-            cause.chains().allSequences()
+            cause.sequences().all()
               .forEach(seq => result.push([conError, ...seq]));
           }
         });
@@ -30,7 +30,7 @@ function ceChainsProvider() {
     };
   }
 
-  return ceChains;
+  return ceSequences;
 }
 
-module.exports = ceChainsProvider;
+module.exports = ceSequencesProvider;

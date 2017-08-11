@@ -26,9 +26,9 @@ const leaf2 = () => new ConError([levelC2(), levelC3], 'leaf2');
 
 const cError = new ConError([leaf0(), leaf2()], 'cError');
 
-describe('ceChains', () => {
+describe('ceSequences', () => {
   describe('firstSequence', () => {
-    const seq = cError.chains().firstSequence();
+    const seq = cError.sequences().first();
 
     it('seq length', () => {
       expect(seq.length).toEqual(4);
@@ -48,7 +48,7 @@ describe('ceChains', () => {
   });
 
   describe('allSequences', () => {
-    const allSeqs = cError.chains().allSequences();
+    const allSeqs = cError.sequences().all();
 
     it('sequences count', () => {
       expect(allSeqs.length).toEqual(4);
