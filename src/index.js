@@ -1,6 +1,6 @@
 const ConError = require('./con-error')(
   require('./resolve-ce-args')(),
-  require('./ce-chains')()
+  require('./ce-sequences')()
 );
 
 module.exports = ConError;

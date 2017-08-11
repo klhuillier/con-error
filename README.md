@@ -123,9 +123,9 @@ To stringify all individual errors, `cerr.aggregate().flattened().map(e => e.toS
 
 Returns a `CeFormats` instance to produce outputs for this ConError.
 
-## `.aggregates()`
+## `.sequences()`
 
-Returns a `CeAggregates` instance for this ConError.
+Returns a new `CeSequences` instance for this ConError.
 
 ## `.causes`
 
@@ -253,12 +253,28 @@ them as '\[object Object\]'. Outside of a browser, writing objects as JSON is th
 
 Returns a new `CeFormat` that will not attempt to add coloring to the output.
 
-# CeAggregates
+# CeSequences
 
-## `.chains()`
+Produces Sequences for the referent ConError.
 
-This returns an unsorted array of new ConError instances representing a full stack trace from a root
-cause up to the referent error. 
+A Sequence is a collection of errors where each error in the sequence is caused by the
+next error in the sequence. e.g., the first element of a Sequence may be thrown by an
+on-click handler, and the last element may be an error from a remote service call
+initiated by the on-click handler. `[OnClickError, ServiceError]`.
+
+Sequences are returned as an array of Error objects, starting with the referent
+ConError and possibly ending with a thrown object that is the final cause.
+e.g., `[ConError, ConError, TypeError]`.
+
+## `.first()`
+
+This returns an array of Errors following the first cause of every ConError instance,
+and possibly including another thrown object as the final cause.
+
+## `.all()`
+
+This returns an unsorted array of all Sequences representing a full stack trace from
+a root cause up to the referent error. 
 
 More specifically, where a "root cause" is either a ConError with no cause, or another thrown type:
 - every element of the array is a ConError with the same message and context as the referent ConError
@@ -273,17 +289,10 @@ could contain two ConError instances with hierarchies like this:
 before: [ A <- [ B <- E, C <- D ] ]
 
 after: [
-  A <- B <- E
-  A <- C <- D
+  Sequence([A <- B <- E]),
+  Sequence([A <- C <- D]),
 ]
 ```
-
-## `.flatten()`
-
-Returns an unsorted array of the referent ConError as well as all objects listed as causes
-in the error hierarchy.
-
-ConError instances are not altered and will contain their original lists of causes.
 
 # Promise-like behavior
 
