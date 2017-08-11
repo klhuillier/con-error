@@ -12,6 +12,14 @@ function conErrorProvider(resolveCeArgs, ceSequences) {
     typeof resolvedArgs.context === 'object' &&
     capturedError instanceof Error;
 
+  // Deep cloning context to capture contextual state at creation of ConError.
+  // Not doing this can allow the contextual state to change later which does not
+  // help debugging. This does not preserve functions, and Dates do not convert
+  // back to Date objects. Given the purpose is for debugging, I don't think either
+  // will be particularly helpful to put into context anyway.
+
+  const deepClone = obj => JSON.parse(JSON.stringify(obj));
+
   function ConError(resolvedArgs, capturedError) {
     if (!argsAreNormalized(resolvedArgs, capturedError)) {
       return new ConError(resolveCeArgs(Array.from(arguments)), new Error());
@@ -19,7 +27,7 @@ function conErrorProvider(resolveCeArgs, ceSequences) {
 
     this.causes = resolvedArgs.causes;
     this.message = resolvedArgs.message;
-    this.context = resolvedArgs.context;
+    this.context = deepClone(resolvedArgs.context);
     this.stack = capturedError.stack;
     this.throw = () => {throw this;};
     this.sequences = () => ceSequences(this);

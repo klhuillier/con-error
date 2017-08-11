@@ -305,7 +305,7 @@ internal states which cannot be set by script.
 
 ```javascript
 Promise.resolve(conError) === conError; // true with some Promise libraries
-Promise.resolve(conError) !== conError; // true with native Promise
+Promise.resolve(conError) === conError; // false with native Promise
 ```
 
 The inheritance chain of ConError is an Error and not a Promise. As a result, testing

@@ -22,7 +22,7 @@ const levelC3 = () => levelB3();
 // 2 seqs from root0 and root1
 const leaf0 = () => levelC0();
 // 2 seqs from root2 and root3
-const leaf2 = () => new ConError([levelC2(), levelC3], 'leaf2');
+const leaf2 = () => new ConError([levelC2(), levelC3()], 'leaf2');
 
 const cError = new ConError([leaf0(), leaf2()], 'cError');
 
