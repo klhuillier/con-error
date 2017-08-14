@@ -1,4 +1,4 @@
-function ceSequencesProvider() {
+function ceSequencesProvider(sequence) {
   function ceSequences(conError) {
     return {
       first: () => {

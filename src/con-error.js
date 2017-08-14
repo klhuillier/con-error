@@ -1,4 +1,4 @@
-function conErrorProvider(resolveCeArgs, ceSequences) {
+function conErrorProvider(resolveCeArgs, ceSequences, ceFormats) {
   // To preserve identity of the constructor and allow as much flexibility as possible for arguments
   // accepted, there are two ways to call the ConError ctor: the user-visible form and the normalized
   // internal form. I really hate the way this looks, but it seems like the best way to preserve the
@@ -31,6 +31,7 @@ function conErrorProvider(resolveCeArgs, ceSequences) {
     this.stack = capturedError.stack;
     this.throw = () => {throw this;};
     this.sequences = () => ceSequences(this);
+    this.formats = () => ceFormats(this);
   }
 
   ConError.prototype = Object.create(Error.prototype, {});
