@@ -9,25 +9,26 @@
 - rethrow and chain errors
 - include an object with values from the point of an error
 - behaves similar to a rejected Promise and can be used as one
-- by default, attempts to avoid noise in stack traces by listing a full
-  stack trace interleaved with exceptions thrown at each point in the stack
 
 ## Stack traces
 
-As an example, a call chain may be `refreshScreen <- refreshCart <- load <- get`.
+As an example, a call chain may be `get <- load <- refreshCart <- refreshScreen`.
 If every method catches and rethrows with additional context, the resulting ConError would
 print the stack trace:
 
 ```text
 Error: failed to refresh screen
-  at refreshScreen (screen.js:50:8)
+  at refreshScreen (screen.js:52:8)
 Caused by: Error: failed to refresh cart
-  at refreshCart (cart.js:50:8)
+  at refreshCart (cart.js:52:8)
+  at refreshScreen (screen.js:50:8)
 Caused by: Error: error getting cart details
   context: {
     cartId: 1
   }
-  at load (cart-details.js:50:8)
+  at load (cart-details.js:52:8)
+  at refreshCart (cart.js:50:8)
+  at refreshScreen (screen.js:50:8)
 Caused by:
   context: {
     statusCode: 500,
@@ -35,13 +36,13 @@ Caused by:
     cartId: 1,
     sessionId: 'e30d...'
   }
-  at handleResponse (http:35:8)
-  at sendReq (http:50:10)
+  at handleResponse (http.js:37:8)
+  at sendReq (http.js:50:10)
   at get (http.js:80:8)
+  at load (cart-details.js:50:8)
+  at refreshCart (cart.js:50:8)
+  at refreshScreen (screen.js:50:8)
 ```
-
-In the above example, rather than showing the complete stack trace for the innermost error,
-ConError attempts to limit the stacktrace displayed to the chains unique to each error.
 
 # API
 
@@ -75,7 +76,8 @@ All three parameters have distinct purposes in diagnosing errors:
 **ConError makes a deep clone of the given contextual object on creation.** The reason for
 doing this deep clone is to avoid problems where values visible to the ConError creation 
 frame are altered before the ConError is printed or inspected in a debugger. With very large
-objects, you may want to limit the properties given as context.
+objects, you may want to limit the properties given as context. This should be done regardless
+of performance to minimize noise.
 
 Typical usage would be:
 
@@ -101,7 +103,7 @@ return promise
 
 `.throw` does as it says, it will throw the ConError.
 
-Used when the `throw` keyword is not permitted, e.g., in a lamdba block:
+Useful when the `throw` keyword is not permitted, e.g., in a ternary:
 
 ```javascript
 const clampTo100 = number =>
@@ -136,12 +138,8 @@ an empty string.
 
 ## `.context`
 
-The contextual object the ConError was constructed with. If there was none,
-this is an empty object.
-
-The object returned here is the same context object that is held by the ConError.
-This is as opposed to the constructor parameter, which is cloned to capture the state
-of the variables when the ConError is created.
+A deep clone of the contextual object the ConError was constructed with.
+If there was none, this is an empty object.
 
 ## `.stack`
 
@@ -174,12 +172,20 @@ Some methods only apply to some formats.
 
 ## Output methods
 
-## `.string()`
+## `.string(options: {}?)`
 
 Returns a form of the ConError that is formatted as a plain string.
 
 By default, in a browser, this will not serialize context objects so that the objects will listed as
 collapsible/expandable objects.
+
+### string options
+
+#### jsonContext: boolean - converts context objects to JSON before printing
+- - in browser this defaults to false which prints contexts as objects
+- - in console this defaults to true
+
+- color: boolean, default false - attempts to highlight the output with ANSI colors
 
 ## `.object()`
 
@@ -189,7 +195,7 @@ no values that cannot be encoded as JSON. i.e., no functions, no DOM elements, e
 In Node.js, this is similar to the `.json` formatter because it transforms objects into JSON when
 printed to a terminal.
 
-## `.json()`
+## `.json(options: {}?)`
 
 Returns a form of the ConError object serialized as JSON with the following form:
 
@@ -221,35 +227,13 @@ Returns a form of the ConError object serialized as JSON with the following form
 }
 ```
 
-The stack frames are the same as produced by `conError.stack()`.
+### json options
 
-## Config methods
+#### indent: number, default 0 - number of spaces to indent each line, 0 = compact form
 
-## `.fullStacks()`
+# TODO stack vs parsedStack debate
 
-Returns a new `CeFormat` which will print full stack traces for every error. Default behavior
-is to attempt to limit the stack trace lines to those that are unique to each error.
-
-## `.indent(number)`
-
-#### json only
-
-Returns a new `CeFormat` with the given indent level when writing as JSON. Default
-indentation is 0 (minified).
-
-## `.jsonContexts()`
-
-#### string only
-
-Returns a new `CeFormat` that converts the context objects to JSON before printing
-as a string. The default is to write the objects as-is while in a browser, which may write
-them as '\[object Object\]'. Outside of a browser, writing objects as JSON is the default.
-
-## `.noColor()`
-
-#### string only
-
-Returns a new `CeFormat` that will not attempt to add coloring to the output.
+The stack frames are the same as produced by `conError.parsedStack`.
 
 # CeSequences
 

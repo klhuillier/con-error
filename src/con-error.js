@@ -28,6 +28,7 @@ function conErrorProvider(resolveCeArgs, ceSequences, ceFormats) {
     this.causes = resolvedArgs.causes;
     this.message = resolvedArgs.message;
     this.context = deepClone(resolvedArgs.context);
+    // TODO (klhuillier) according to spec, this should be the parsed version
     this.stack = capturedError.stack;
     this.throw = () => {throw this;};
     this.sequences = () => ceSequences(this);
