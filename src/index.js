@@ -1,11 +1,17 @@
 const ConError = require('./con-error')(
-  require('./resolve-ce-args')(),
-  require('./ce-sequences')(),
+  require('./resolve-ce-args'),
+  require('./ce-sequences'),
   require('./formats/ce-formats')(
-    require('./parsed-sequence')(
-      require('error-stack-parser')
+    require('./formats/string-format'),
+    require('./formats/object-format'),
+    require('./formats/json-format')(
+      require('./formats/object-format')
     ),
-    require('./formats/string-format')()
+  ),
+  require('./cached-call'),
+  require('./normalize-stack'),
+  require('./parse-stack')(
+    require('error-stack-parser')
   )
 );
 

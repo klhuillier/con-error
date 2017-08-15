@@ -1,4 +1,5 @@
-function conErrorProvider(resolveCeArgs, ceSequences, ceFormats) {
+function conErrorProvider(resolveCeArgs, ceSequences, ceFormats,
+                          cachedCall, normalizeStack, parseStack) {
   // To preserve identity of the constructor and allow as much flexibility as possible for arguments
   // accepted, there are two ways to call the ConError ctor: the user-visible form and the normalized
   // internal form. I really hate the way this looks, but it seems like the best way to preserve the
@@ -28,15 +29,18 @@ function conErrorProvider(resolveCeArgs, ceSequences, ceFormats) {
     this.causes = resolvedArgs.causes;
     this.message = resolvedArgs.message;
     this.context = deepClone(resolvedArgs.context);
-    // TODO (klhuillier) according to spec, this should be the parsed version
     this.stack = capturedError.stack;
+    // slice(1) to drop the frame created in the `new Error()` above
+    this.parsedStack = cachedCall(() => parseStack(this).slice(1));
+    this.normalizedStack = cachedCall(() => normalizeStack(this.parsedStack()));
     this.throw = () => {throw this;};
     this.sequences = () => ceSequences(this);
     this.formats = () => ceFormats(this);
   }
 
   ConError.prototype = Object.create(Error.prototype, {});
-  // Explicitly set the name for minification
+  // Explicitly set the name for minification. It's a reserved identifier in our build, but
+  // the script may be minified by another build script.
   ConError.prototype.name = 'ConError';
 
   return ConError;

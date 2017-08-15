@@ -115,7 +115,8 @@ const clampTo100 = number =>
 ## `.toString()`
 
 Returns a string containing the entire stack trace of the ConError instance. At each level in
-the hierarchy, it will only select and stringify the first cause.
+the hierarchy, it will only select and stringify the first cause. This is
+the same as `cerr.formats().string()`.
 
 To stringify all sequences of errors, `cerr.sequences().all().map(e => e.toString())`
 
@@ -143,15 +144,41 @@ If there was none, this is an empty object.
 
 ## `.stack`
 
-The stack of this error as an array, including stack frames of parent ConErrors.
-The stack is of this form for a single stack frame:
+The stack of this error as a string. This is stack unmodified from the
+point of capture and the format varies by JS engine.
+
+Because the stack is taken from an Error captured internally, this stack
+will contain an additional line inside ConError.
+
+## `.normalizedStack()`
+
+Returns the stack in a normalized form. The stack frame captured inside
+ConError is omitted. The normalized form is similar to Chrome's:
+
+ ` at ${functionName} (${fileName}[:${lineNumber}[:${columnNumber}]])`
+
+functionName can be <eval> or <anonymous>
+
+fileName can be <native> or <anonymous>
+
+lineNumber and columnNumber can both be omitted. The colons only appear
+if there is a following number.
+
+If lineNumber is omitted, columnNumber will never be displayed.
+Therefore, this unambiguously means line 42: (script.js:42)
+
+## `.parsedStack()`
+
+Returns the stack of this error as an array. The stack frame captured
+inside ConError is omitted. The stack is of this form for a single
+stack frame:
 
 ```json
 {
   "frames": [
     {
       "function": "refresh",
-      "script": "app/store/cart.js",
+      "filename": "app/store/cart.js",
       "line": 50,
       "column": 8,
       "eval": false,
@@ -172,28 +199,19 @@ Some methods only apply to some formats.
 
 ## Output methods
 
-## `.string(options: {}?)`
+## `.string()`
 
 Returns a form of the ConError that is formatted as a plain string.
 
 By default, in a browser, this will not serialize context objects so that the objects will listed as
 collapsible/expandable objects.
 
-### string options
-
-#### jsonContext: boolean - converts context objects to JSON before printing
-- - in browser this defaults to false which prints contexts as objects
-- - in console this defaults to true
-
-- color: boolean, default false - attempts to highlight the output with ANSI colors
-
 ## `.object()`
 
-Returns a form of the ConError that is formatted as a plain JavaScript object. That is, an object with
+Returns a form of the ConError as a plain JavaScript object. That is, an object with
 no values that cannot be encoded as JSON. i.e., no functions, no DOM elements, etc.
 
-In Node.js, this is similar to the `.json` formatter because it transforms objects into JSON when
-printed to a terminal.
+This is the same object that is encoded by `.json()`.
 
 ## `.json(options: {}?)`
 
@@ -208,12 +226,11 @@ Returns a form of the ConError object serialized as JSON with the following form
     "frames": [
       {
         "function": "",
-        "script": "",
+        "filename": "",
         "line": 0,
         "column": 0,
         "eval": false,
-        "native": false,
-        "constructor": false
+        "native": false
       }
     ]
   },
@@ -231,9 +248,8 @@ Returns a form of the ConError object serialized as JSON with the following form
 
 #### indent: number, default 0 - number of spaces to indent each line, 0 = compact form
 
-# TODO stack vs parsedStack debate
-
-The stack frames are the same as produced by `conError.parsedStack`.
+The stack frames are the same as produced by `conError.parsedStack()`
+for each error in the sequence.
 
 # CeSequences
 
