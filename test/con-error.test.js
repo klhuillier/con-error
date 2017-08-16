@@ -1,3 +1,4 @@
+// TODO Rewrite this without ./src/index
 const ConError = require('../src/index');
 
 const messageBoom = 'boom!';

@@ -1,10 +1,10 @@
-function jsonFormatProvider(objectFormat) {
+function jsonFormatProvider(objectFormat, stringify) {
   return function(conError, config) {
     const indent = (typeof config === 'object' && typeof config.indent === 'number') ?
       config.indent :
       undefined;
 
-    return JSON.stringify(objectFormat(conError), undefined, indent);
+    return stringify(objectFormat(conError), undefined, indent);
   };
 }
 
