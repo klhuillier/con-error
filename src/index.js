@@ -1,4 +1,4 @@
-const ConError = require('./con-error')(
+module.exports = require('./con-error')(
   require('./resolve-ce-args'),
   require('./ce-sequences'),
   require('./formats/ce-formats')(
@@ -9,5 +9,3 @@ const ConError = require('./con-error')(
     ),
   )
 );
-
-module.exports = ConError;
