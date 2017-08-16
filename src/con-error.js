@@ -1,4 +1,4 @@
-function conErrorProvider(resolveCeArgs, ceSequences, ceFormats) {
+function conErrorProvider(resolveCeArgs, ceSequences, ceFormats, promiseAll) {
   // To preserve identity of the constructor and allow as much flexibility as possible for arguments
   // accepted, there are two ways to call the ConError ctor: the user-visible form and the normalized
   // internal form. I really hate the way this looks, but it seems like the best way to preserve the
@@ -33,6 +33,9 @@ function conErrorProvider(resolveCeArgs, ceSequences, ceFormats) {
     this.throw = () => {throw this;};
     this.sequences = () => ceSequences(this);
     this.formats = () => ceFormats(this);
+    // Promise-like functions
+    this.then = (resolved, rejected) => Promise.reject(this).then(resolved, rejected);
+    this.catch = (rejected) => Promise.reject(this).catch(rejected);
   }
 
   ConError.prototype = Object.create(Error.prototype, {});
@@ -40,6 +43,8 @@ function conErrorProvider(resolveCeArgs, ceSequences, ceFormats) {
   // Explicitly set the name for minification. It's a reserved identifier in our build, but
   // the script may be minified by another build script.
   ConError.prototype.name = 'ConError';
+
+  ConError.all = promiseAll;
 
   return ConError;
 }

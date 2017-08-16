@@ -7,7 +7,8 @@ const ConError = require('./con-error')(
     require('./formats/json-format')(
       require('./formats/object-format')
     ),
-  )
+  ),
+  require('./promise-all')
 );
 
 module.exports = ConError;
