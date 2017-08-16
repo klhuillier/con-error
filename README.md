@@ -197,9 +197,14 @@ Returns a form of the ConError object serialized as JSON with the following form
 
 ### json options
 
-#### indent: number, default 0 - number of spaces to indent each line, 0 = compact form
+#### indent: number, default 0
+
+number of spaces to indent each line, 0 = compact form
+
+`{indent: 2}`
 
 # CeSequences
+
 
 Produces sequences for the referent ConError.
 
