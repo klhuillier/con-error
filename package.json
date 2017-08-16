@@ -11,6 +11,7 @@
     "build": "npm run build-mkdist && npm run build-statics && npm run build-bundle && npm run build-minify"
   },
   "main": "./dist/index.min.js",
+  "license": "ISC",
   "dependencies": {
   },
   "devDependencies": {
