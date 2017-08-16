@@ -7,11 +7,6 @@ const ConError = require('./con-error')(
     require('./formats/json-format')(
       require('./formats/object-format')
     ),
-  ),
-  require('./cached-call'),
-  require('./normalize-stack'),
-  require('./parse-stack')(
-    require('error-stack-parser')
   )
 );
 

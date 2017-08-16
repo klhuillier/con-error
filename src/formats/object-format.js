@@ -1,8 +1,8 @@
 const formatCe = (conError) => ({
   name: conError.name,
   message: conError.message,
+  stack: conError.stack,
   context: conError.context,
-  parsedStack: conError.parsedStack(),
   causes: conError.causes.map(objectFormat),
 });
 
@@ -13,7 +13,7 @@ const formatErr = (error) => ({
 });
 
 function objectFormat(error) {
-  if (typeof error.parsedStack === 'function' && Array.isArray(error.causes)) {
+  if (typeof error.formats === 'function' && Array.isArray(error.causes)) {
     return formatCe(error);
   }
   return formatErr(error);

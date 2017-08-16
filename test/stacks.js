@@ -16,138 +16,10 @@ FakeError.prototype = Object.create(Error.prototype, {});
 
 const errors = {};
 
-errors.opera854 = new FakeError({
-  message: 'Statement on line 44: Type mismatch (usually a non-object value used where an object is required)\n' +
-  'Backtrace:\n' +
-  '  Line 44 of linked script http://path/to/file.js\n' +
-  '    this.undef();\n' +
-  '  Line 31 of linked script http://path/to/file.js\n' +
-  '    ex = ex || this.createException();\n' +
-  '  Line 18 of linked script http://path/to/file.js\n' +
-  '    var p = new printStackTrace.implementation(), result = p.run(ex);\n' +
-  '  Line 4 of inline#1 script in http://path/to/file.js\n' +
-  '    printTrace(printStackTrace());\n' +
-  '  Line 7 of inline#1 script in http://path/to/file.js\n' +
-  '    bar(n - 1);\n' +
-  '  Line 11 of inline#1 script in http://path/to/file.js\n' +
-  '    bar(2);\n' +
-  '  Line 15 of inline#1 script in http://path/to/file.js\n' +
-  '    foo();\n' +
-  '',
-  'opera#sourceloc': 44
-});
-
-errors.opera902 = new FakeError({
-  message: 'Statement on line 44: Type mismatch (usually a non-object value used where an object is required)\n' +
-  'Backtrace:\n' +
-  '  Line 44 of linked script http://path/to/file.js\n' +
-  '    this.undef();\n' +
-  '  Line 31 of linked script http://path/to/file.js\n' +
-  '    ex = ex || this.createException();\n' +
-  '  Line 18 of linked script http://path/to/file.js\n' +
-  '    var p = new printStackTrace.implementation(), result = p.run(ex);\n' +
-  '  Line 4 of inline#1 script in http://path/to/file.js\n' +
-  '    printTrace(printStackTrace());\n' +
-  '  Line 7 of inline#1 script in http://path/to/file.js\n' +
-  '    bar(n - 1);\n' +
-  '  Line 11 of inline#1 script in http://path/to/file.js\n' +
-  '    bar(2);\n' +
-  '  Line 15 of inline#1 script in http://path/to/file.js\n' +
-  '    foo();\n' +
-  '',
-  'opera#sourceloc': 44
-});
-
-errors.opera927 = new FakeError({
-  message: 'Statement on line 43: Type mismatch (usually a non-object value used where an object is required)\n' +
-  'Backtrace:\n' +
-  '  Line 43 of linked script http://path/to/file.js\n' +
-  '    bar(n - 1);\n' +
-  '  Line 31 of linked script http://path/to/file.js\n' +
-  '    bar(2);\n' +
-  '  Line 18 of linked script http://path/to/file.js\n' +
-  '    foo();\n' +
-  '',
-  'opera#sourceloc': 43
-});
-
-errors.opera964 = new FakeError({
-  message: 'Statement on line 42: Type mismatch (usually non-object value supplied where object required)\n' +
-  'Backtrace:\n' +
-  '  Line 42 of linked script http://path/to/file.js\n' +
-  '                this.undef();\n' +
-  '  Line 27 of linked script http://path/to/file.js\n' +
-  '            ex = ex || this.createException();\n' +
-  '  Line 18 of linked script http://path/to/file.js: In function printStackTrace\n' +
-  '        var p = new printStackTrace.implementation(), result = p.run(ex);\n' +
-  '  Line 4 of inline#1 script in http://path/to/file.js: In function bar\n' +
-  '             printTrace(printStackTrace());\n' +
-  '  Line 7 of inline#1 script in http://path/to/file.js: In function bar\n' +
-  '           bar(n - 1);\n' +
-  '  Line 11 of inline#1 script in http://path/to/file.js: In function foo\n' +
-  '           bar(2);\n' +
-  '  Line 15 of inline#1 script in http://path/to/file.js\n' +
-  '         foo();\n' +
-  '',
-  'opera#sourceloc': 42,
-  stacktrace: '  ...  Line 27 of linked script http://path/to/file.js\n' +
-  '            ex = ex || this.createException();\n' +
-  '  Line 18 of linked script http://path/to/file.js: In function printStackTrace\n' +
-  '        var p = new printStackTrace.implementation(), result = p.run(ex);\n' +
-  '  Line 4 of inline#1 script in http://path/to/file.js: In function bar\n' +
-  '             printTrace(printStackTrace());\n' +
-  '  Line 7 of inline#1 script in http://path/to/file.js: In function bar\n' +
-  '           bar(n - 1);\n' +
-  '  Line 11 of inline#1 script in http://path/to/file.js: In function foo\n' +
-  '           bar(2);\n' +
-  '  Line 15 of inline#1 script in http://path/to/file.js\n' +
-  '         foo();\n' +
-  ''
-});
-
-errors.opera10 = new FakeError({
-  message: 'Statement on line 42: Type mismatch (usually non-object value supplied where object required)',
-  'opera#sourceloc': 42,
-  stacktrace: '  Line 42 of linked script http://path/to/file.js\n' +
-  '                this.undef();\n' +
-  '  Line 27 of linked script http://path/to/file.js\n' +
-  '            ex = ex || this.createException();\n' +
-  '  Line 18 of linked script http://path/to/file.js: In function printStackTrace\n' +
-  '        var p = new printStackTrace.implementation(), result = p.run(ex);\n' +
-  '  Line 4 of inline#1 script in http://path/to/file.js: In function bar\n' +
-  '             printTrace(printStackTrace());\n' +
-  '  Line 7 of inline#1 script in http://path/to/file.js: In function bar\n' +
-  '           bar(n - 1);\n' +
-  '  Line 11 of inline#1 script in http://path/to/file.js: In function foo\n' +
-  '           bar(2);\n' +
-  '  Line 15 of inline#1 script in http://path/to/file.js\n' +
-  '         foo();\n' +
-  ''
-});
-
-errors.opera11 = new FakeError({
-  message: '\'this.undef\' is not a function',
-  stack: '<anonymous function: run>([arguments not available])@http://path/to/file.js:27\n' +
-  'bar([arguments not available])@http://domain.com:1234/path/to/file.js:18\n' +
-  'foo([arguments not available])@http://domain.com:1234/path/to/file.js:11\n' +
-  '<anonymous function>@http://path/to/file.js:15\n' +
-  'Error created at <anonymous function>@http://path/to/file.js:15',
-  stacktrace: 'Error thrown at line 42, column 12 in <anonymous function: createException>() in http://path/to/file.js:\n' +
-  '    this.undef();\n' +
-  'called from line 27, column 8 in <anonymous function: run>(ex) in http://path/to/file.js:\n' +
-  '    ex = ex || this.createException();\n' +
-  'called from line 18, column 4 in printStackTrace(options) in http://path/to/file.js:\n' +
-  '    var p = new printStackTrace.implementation(), result = p.run(ex);\n' +
-  'called from line 4, column 5 in bar(n) in http://path/to/file.js:\n' +
-  '    printTrace(printStackTrace());\n' +
-  'called from line 7, column 4 in bar(n) in http://path/to/file.js:\n' +
-  '    bar(n - 1);\n' +
-  'called from line 11, column 4 in foo() in http://path/to/file.js:\n' +
-  '    bar(2);\n' +
-  'called from line 15, column 3 in http://path/to/file.js:\n' +
-  '    foo();'
-});
-
+// These stacks, and the much older forms, are not supported:
+// Opera 12 was released June 2012
+// 13 didn't exist and 14 was an Android version
+// Opera 15 was released July 2013
 errors.opera12 = new FakeError({
   message: 'Cannot convert \'x\' to object',
   stack: '<anonymous function>([arguments not available])@http://localhost:8000/ExceptionLab.html:48\n' +
@@ -161,6 +33,11 @@ errors.opera12 = new FakeError({
   '    dumpException3();'
 });
 
+// These stacks will continue to be supported:
+// Opera 22: Jun 2014
+// Opera 23: Jul 2014
+// Opera 24: Sep 2014
+// Opera 25: Oct 2014
 errors.opera25 = new FakeError({
   message: 'Cannot read property \'undef\' of null',
   name: 'TypeError',
@@ -168,24 +45,6 @@ errors.opera25 = new FakeError({
   '    at http://path/to/file.js:47:22\n' +
   '    at foo (http://path/to/file.js:52:15)\n' +
   '    at bar (http://path/to/file.js:108:168)'
-});
-
-errors.chrome15 = new FakeError({
-  'arguments': ['undef'],
-  message: 'Object #<Object> has no method \'undef\'',
-  stack: 'TypeError: Object #<Object> has no method \'undef\'\n' +
-  '    at bar (http://path/to/file.js:13:17)\n' +
-  '    at bar (http://path/to/file.js:16:5)\n' +
-  '    at foo (http://path/to/file.js:20:5)\n' +
-  '    at http://path/to/file.js:24:4'
-});
-
-errors.chrome36 = new FakeError({
-  message: 'Default error',
-  name: 'Error',
-  stack: 'Error: Default error\n' +
-  '    at dumpExceptionError (http://localhost:8080/file.js:41:27)\n' +
-  '    at HTMLButtonElement.onclick (http://localhost:8080/file.js:107:146)'
 });
 
 errors.chrome46 = new FakeError({
@@ -207,54 +66,7 @@ errors.chrome48NestedEval = new FakeError({
   'at http://localhost:8080/file.js:31:13\n'
 });
 
-errors.firefox3 = new FakeError({
-  fileName: 'http://127.0.0.1:8000/js/stacktrace.js',
-  lineNumber: 44,
-  message: 'this.undef is not a function',
-  name: 'TypeError',
-  stack: '()@http://127.0.0.1:8000/js/stacktrace.js:44\n' +
-  '(null)@http://127.0.0.1:8000/js/stacktrace.js:31\n' +
-  'printStackTrace()@http://127.0.0.1:8000/js/stacktrace.js:18\n' +
-  'bar(1)@http://127.0.0.1:8000/js/file.js:13\n' +
-  'bar(2)@http://127.0.0.1:8000/js/file.js:16\n' +
-  'foo()@http://127.0.0.1:8000/js/file.js:20\n' +
-  '@http://127.0.0.1:8000/js/file.js:24\n' +
-  ''
-});
-
-errors.firefox7 = new FakeError({
-  fileName: 'file:///G:/js/stacktrace.js',
-  lineNumber: 44,
-  stack: '()@file:///G:/js/stacktrace.js:44\n' +
-  '(null)@file:///G:/js/stacktrace.js:31\n' +
-  'printStackTrace()@file:///G:/js/stacktrace.js:18\n' +
-  'bar(1)@file:///G:/js/file.js:13\n' +
-  'bar(2)@file:///G:/js/file.js:16\n' +
-  'foo()@file:///G:/js/file.js:20\n' +
-  '@file:///G:/js/file.js:24\n' +
-  ''
-});
-
-errors.firefox14 = new FakeError({
-  message: 'x is null',
-  stack: '@http://path/to/file.js:48\n' +
-  'dumpException3@http://path/to/file.js:52\n' +
-  'onclick@http://path/to/file.js:1\n' +
-  '',
-  fileName: 'http://path/to/file.js',
-  lineNumber: 48
-});
-
-errors.firefox31 = new FakeError({
-  message: 'Default error',
-  name: 'Error',
-  stack: 'foo@http://path/to/file.js:41:13\n' +
-  'bar@http://path/to/file.js:1:1\n' +
-  '',
-  fileName: 'http://path/to/file.js',
-  lineNumber: 41,
-  columnNumber: 12
-});
+// Firefox 56 is still like this:
 
 errors.firefox43NestedEval = new FakeError({
   columnNumber: 30,
@@ -279,25 +91,7 @@ errors.firefox43FunctionNameWithAtSign = new FakeError({
   columnNumber: 29
 });
 
-errors.safari6 = new FakeError({
-  message: '\'null\' is not an object (evaluating \'x.undef\')',
-  stack: '@http://path/to/file.js:48\n' +
-  'dumpException3@http://path/to/file.js:52\n' +
-  'onclick@http://path/to/file.js:82\n' +
-  '[native code]',
-  line: 48,
-  sourceURL: 'http://path/to/file.js'
-});
-
-errors.safari7 = new FakeError({
-  message: '\'null\' is not an object (evaluating \'x.undef\')',
-  name: 'TypeError',
-  stack: 'http://path/to/file.js:48:22\n' +
-  'foo@http://path/to/file.js:52:15\n' +
-  'bar@http://path/to/file.js:108:107',
-  line: 47,
-  sourceURL: 'http://path/to/file.js'
-});
+// Safari is still like this:
 
 errors.safari8 = new FakeError({
   message: 'null is not an object (evaluating \'x.undef\')',

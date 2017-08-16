@@ -11,7 +11,6 @@
   },
   "main": "./dist/index.min.js",
   "dependencies": {
-    "error-stack-parser": "~2.0.1"
   },
   "devDependencies": {
     "babel-preset-env": "^1.6.0",
@@ -31,8 +30,8 @@
               {
                 "targets": {
                   "browsers": [
-                    "last 2 versions",
-                    "safari >= 7",
+                    "chrome >= 60",
+                    "safari >= 9",
                     "ie >= 10"
                   ]
                 }

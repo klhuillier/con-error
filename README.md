@@ -17,25 +17,29 @@ If every method catches and rethrows with additional context, the resulting ConE
 print the stack trace:
 
 ```text
-Error: failed to refresh screen
+ConError: failed to refresh screen
+Error
   at refreshScreen (screen.js:52:8)
-Caused by: Error: failed to refresh cart
+Caused by: ConError: failed to refresh cart
+Error
   at refreshCart (cart.js:52:8)
   at refreshScreen (screen.js:50:8)
-Caused by: Error: error getting cart details
+Caused by: ConError: error getting cart details
   context: {
     cartId: 1
   }
+Error
   at load (cart-details.js:52:8)
   at refreshCart (cart.js:50:8)
   at refreshScreen (screen.js:50:8)
-Caused by:
+Caused by: ConError: http error
   context: {
     statusCode: 500,
     response: [a large Object],
     cartId: 1,
     sessionId: 'e30d...'
   }
+Error
   at handleResponse (http.js:37:8)
   at sendReq (http.js:50:10)
   at get (http.js:80:8)
@@ -150,48 +154,6 @@ point of capture and the format varies by JS engine.
 Because the stack is taken from an Error captured internally, this stack
 will contain an additional line inside ConError.
 
-## `.normalizedStack()`
-
-Returns the stack in a normalized form. The stack frame captured inside
-ConError is omitted. The normalized form is similar to Chrome's:
-
- ` at ${functionName} (${fileName}[:${lineNumber}[:${columnNumber}]])`
-
-functionName can be <eval> or <anonymous>
-
-fileName can be <native> or <anonymous>
-
-lineNumber and columnNumber can both be omitted. The colons only appear
-if there is a following number.
-
-If lineNumber is omitted, columnNumber will never be displayed.
-Therefore, this unambiguously means line 42: (script.js:42)
-
-## `.parsedStack()`
-
-Returns the stack of this error as an array. The stack frame captured
-inside ConError is omitted. The stack is of this form for a single
-stack frame:
-
-```json
-{
-  "frames": [
-    {
-      "function": "refresh",
-      "filename": "app/store/cart.js",
-      "line": 50,
-      "column": 8,
-      "eval": false,
-      "native": false
-    }
-  ]
-}
-```
-
-Like most stack traces, the inner-most call is the first element of the "frames" array.
-
-The indentation and spacing may vary, but the result will be valid JSON.
-
 # CeFormats
 
 Created by a ConError with `.formats()`, the CeFormats has various ways of encoding the ConError.
@@ -219,26 +181,15 @@ Returns a form of the ConError object serialized as JSON with the following form
 
 ```json
 {
-  "constructor": "ConError",
+  "name": "ConError",
   "message": "",
   "context": {},
-  "stack": {
-    "frames": [
-      {
-        "function": "",
-        "filename": "",
-        "line": 0,
-        "column": 0,
-        "eval": false,
-        "native": false
-      }
-    ]
-  },
+  "stack": "",
   "causes": [
     {
-      "constructor": "Error",
+      "name": "Error",
       "message": "",
-      "stack": {"frames": []}
+      "stack": ""
     }
   ]
 }
@@ -248,15 +199,12 @@ Returns a form of the ConError object serialized as JSON with the following form
 
 #### indent: number, default 0 - number of spaces to indent each line, 0 = compact form
 
-The stack frames are the same as produced by `conError.parsedStack()`
-for each error in the sequence.
-
 # CeSequences
 
-Produces Sequences for the referent ConError.
+Produces sequences for the referent ConError.
 
-A Sequence is a collection of errors where each error in the sequence is caused by the
-next error in the sequence. e.g., the first element of a Sequence may be thrown by an
+A sequence is an array of errors where each error in the sequence is caused by the
+next error in the sequence. e.g., the first element of a sequence may be thrown by an
 on-click handler, and the last element may be an error from a remote service call
 initiated by the on-click handler. `[OnClickError, ServiceError]`.
 
@@ -271,7 +219,7 @@ and possibly including another thrown object as the final cause.
 
 ## `.all()`
 
-This returns an unsorted array of all Sequences representing a full stack trace from
+This returns an unsorted array of all sequences representing a full stack trace from
 a root cause up to the referent error. 
 
 More specifically, where a "root cause" is either a ConError with no cause, or another thrown type:
@@ -287,8 +235,8 @@ could contain two ConError instances with hierarchies like this:
 before: [ A <- [ B <- E, C <- D ] ]
 
 after: [
-  Sequence([A <- B <- E]),
-  Sequence([A <- C <- D]),
+  [A <- B <- E],
+  [A <- C <- D],
 ]
 ```
 
@@ -312,6 +260,7 @@ The inheritance chain of ConError is an Error and not a Promise. As a result, te
 with `instanceof` will indicate it is not a Promise.
 
 ```javascript
+conError instanceof ConError; // true
 conError instanceof Error; // true
 conError instanceof Promise; // false
 ```
@@ -324,20 +273,24 @@ const rejected = Promise.reject(new ConError());
 Promise.resolve(rejected) === rejected; // true
 rejected instanceof Promise; // true
 // or with a no-op then:
-const nooped = new ConError().then();
+const nooped = new ConError().then(value => value);
 Promise.resolve(nooped) === nooped; // true
 nooped instanceof Promise; // true
 ```
 
-## `ConError.all(Promise[], string?, {}?)`
+## `ConError.all(Promise[])`
 
 Similar to `Promise.all`, except when rejected, the ConError will contain *all* rejected
 promises, not just the first.
 
-A message string and context info can be optionally provided.
+On success, this will behave the same as `Promise.all`. That is, ConError.all([a, b]) will
+call `.then()` with `[aResolution, bResolution]`.
+
+Values which are not Promises are treated as resolved values, the same as `Promise.all`.
 
 ```javascript
-ConError.all(promises, 'failed in loading auction lot data', {lotId: lotId})
+ConError.all(promises)
+  .catch(errors => new ConError(errors, 'failed in loading auction lot data', {lotId: lotId}))
   .then(/* do something with all resolved */);
 ```
 

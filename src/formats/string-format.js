@@ -7,7 +7,7 @@ const stringifyContext = (error) => (error.context && Object.keys(error.context)
 function errToString(cause) {
   return cause.name + ': ' + cause.message + '\n'
     + stringifyContext(cause)
-    + cause.normalizedStack().join('\n')
+    + cause.stack
     + '\n';
 }
 
