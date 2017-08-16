@@ -1,4 +1,6 @@
-const stringFormat = require('../../src/formats/string-format');
+const stringFormat = require('../../src/formats/string-format')(
+  JSON.stringify
+);
 const testSeq0 = require('../test-error-0').sequences().first();
 
 
