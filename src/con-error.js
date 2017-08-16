@@ -29,7 +29,6 @@ function conErrorProvider(resolveCeArgs, ceSequences, ceFormats) {
     this.message = resolvedArgs.message;
     this.context = deepClone(resolvedArgs.context);
     this.stack = capturedError.stack;
-    // slice(1) to drop the frame created in the `new Error()` above
     this.throw = () => {throw this;};
     this.sequences = () => ceSequences(this);
     this.formats = () => ceFormats(this);
