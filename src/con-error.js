@@ -33,6 +33,7 @@ function conErrorProvider(resolveCeArgs, ceSequences, ceFormats) {
     this.throw = () => {throw this;};
     this.sequences = () => ceSequences(this);
     this.formats = () => ceFormats(this);
+    this.toString = () => this.formats().string();
     // Promise-like functions
     this.then = (resolved, rejected) => Promise.reject(this).then(resolved, rejected);
     this.catch = (rejected) => Promise.reject(this).catch(rejected);
