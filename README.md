@@ -278,24 +278,6 @@ Promise.resolve(nooped) === nooped; // true
 nooped instanceof Promise; // true
 ```
 
-## `ConError.all(Promise[])`
-
-Similar to `Promise.all`, except when rejected, the ConError will contain *all* rejected
-promises, not just the first.
-
-On success, this will behave the same as `Promise.all`. That is, ConError.all([a, b]) will
-call `.then()` with `[aResolution, bResolution]`.
-
-Values which are not Promises are treated as resolved values, the same as `Promise.all`.
-
-```javascript
-ConError.all(promises)
-  .catch(errors => new ConError(errors, 'failed in loading auction lot data', {lotId: lotId}))
-  .then(/* do something with all resolved */);
-```
-
-The returned Promise from `ConError.all` is a native es6 Promise.
-
 ## `.then(fn, fn)`
 
 The first callback of `.then` is never called, since a ConError instance is always rejected.
