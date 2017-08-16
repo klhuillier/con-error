@@ -1,6 +1,6 @@
 function jsonFormatProvider(objectFormat, stringify) {
   return function(conError, config) {
-    const indent = (typeof config === 'object' && typeof config.indent === 'number') ?
+    const indent = (config && config.indent === ~~config.indent) ?
       config.indent :
       undefined;
 

@@ -6,10 +6,13 @@ function conErrorProvider(resolveCeArgs, ceSequences, ceFormats) {
   // separate fn and require users do `createConError`, `ConError.create`, etc, but I also hate that.)
 
   const argsAreNormalized = (resolvedArgs, capturedError) =>
-    typeof resolvedArgs === 'object' &&
+    // Deliberately avoiding typeof because of babel's polyfills. Type coercions are
+    // generally fast operations and are more reliable than typeof. Check out
+    // lodash's _.isString for how complicated it can be.
+    resolvedArgs === Object(resolvedArgs) &&
     Array.isArray(resolvedArgs.causes) &&
-    typeof resolvedArgs.message === 'string' &&
-    typeof resolvedArgs.context === 'object' &&
+    resolvedArgs.message === '' + resolvedArgs.message &&
+    resolvedArgs.context === Object(resolvedArgs.context) &&
     capturedError instanceof Error;
 
   // Deep cloning context to capture contextual state at creation of ConError.

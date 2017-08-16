@@ -5,8 +5,8 @@ function ceSequence(conError) {
         return [conError];
       }
       const firstCause = conError.causes[0];
-      if (typeof firstCause.sequences === 'function') {
-        return [conError, ...firstCause.sequences().first()];
+      if (firstCause.sequences && firstCause.sequences.call) {
+        return [conError].concat(firstCause.sequences().first());
       } else {
         return [conError, firstCause];
       }
@@ -17,11 +17,11 @@ function ceSequence(conError) {
       }
       const result = [];
       conError.causes.forEach(cause => {
-        if (typeof cause.sequences !== 'function') {
-          result.push([conError, cause]);
-        } else {
+        if (cause.sequences && cause.sequences.call) {
           cause.sequences().all()
-            .forEach(seq => result.push([conError, ...seq]));
+            .forEach(seq => result.push([conError].concat(seq)));
+        } else {
+          result.push([conError, cause]);
         }
       });
       return result;

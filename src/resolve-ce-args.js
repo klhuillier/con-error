@@ -18,14 +18,14 @@ function resolveCeArgs(ceArgs) {
     shiftNil();
   }
 
-  if (typeof ceArgs[0] === 'string') {
+  if (ceArgs[0] === ''+ceArgs[0]) {
     sortedArgs.push(ceArgs.shift());
   } else {
     sortedArgs.push('');
     shiftNil();
   }
 
-  if (typeof ceArgs[0] === 'object') {
+  if (ceArgs[0] === Object(ceArgs[0])) {
     sortedArgs.push(ceArgs.shift());
   } else {
     sortedArgs.push({});

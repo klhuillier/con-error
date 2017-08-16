@@ -13,7 +13,7 @@ const formatErr = (error) => ({
 });
 
 function objectFormat(error) {
-  if (typeof error.formats === 'function' && Array.isArray(error.causes)) {
+  if (error.formats && error.formats.call && Array.isArray(error.causes)) {
     return formatCe(error);
   }
   return formatErr(error);
