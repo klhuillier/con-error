@@ -1,6 +1,6 @@
 # ConError - Contextual JavaScript Errors
 
-###### Give context to your errors or the bunny gets it
+*Give context to your errors or the bunny gets it*
 
 # Features
 
@@ -71,17 +71,15 @@ values are optional, but any that are given must appear in the expected order.
 
 All three parameters have distinct purposes in diagnosing errors:
 - causes (nested errors) hold the state for where the original error occurred at a lower level
-- message is useful for giving a general description of what was being attempted in
-  the frame this error was thrown from (it may even be distinct enough to locate the
-  exact line in the application with grep)
+- message gives a general description of what was being attempted in the frame this error
+  was thrown from, and may help for locating the error without sourcemaps
 - context gives a snapshot of the local variable state of the frame this error was
   thrown from
   
-**ConError makes a deep clone of the given contextual object on creation.** The reason for
-doing this deep clone is to avoid problems where values visible to the ConError creation 
-frame are altered before the ConError is printed or inspected in a debugger. With very large
-objects, you may want to limit the properties given as context. This should be done regardless
-of performance to minimize noise.
+**ConError makes a deep clone of the given contextual object on creation.** This is to
+avoid problems where values visible to the ConError creation frame are altered before the
+ConError is printed or inspected in a debugger. With very large objects, you may want to
+limit the properties given as context. This should be also be done to minimize noise.
 
 Typical usage would be:
 
@@ -156,10 +154,7 @@ will contain an additional line inside ConError.
 
 # CeFormats
 
-Created by a ConError with `.formats()`, the CeFormats has various ways of encoding the ConError.
-Some methods only apply to some formats.
-
-## Output methods
+Created by a ConError with `.formats()` to encode the error for output.
 
 ## `.string()`
 
@@ -204,7 +199,6 @@ number of spaces to indent each line, 0 = compact form
 `{indent: 2}`
 
 # CeSequences
-
 
 Produces sequences for the referent ConError.
 
