@@ -204,12 +204,8 @@ conError instanceof Promise; // false
 When the differences are important, one can easily make it a native Promise:
 
 ```javascript
-// with Promise.reject
-const rejected = Promise.reject(new ConError());
-Promise.resolve(rejected) === rejected; // true
-rejected instanceof Promise; // true
 // or with a no-op then:
-const nooped = new ConError().then(value => value);
+const nooped = new ConError().then();
 Promise.resolve(nooped) === nooped; // true
 nooped instanceof Promise; // true
 ```

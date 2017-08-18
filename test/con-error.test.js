@@ -79,11 +79,26 @@ describe('ConError', () => {
   describe('Promise-like behavior', () => {
     describe('nativity', () => {
       it('should not be a native Promise', () => {
+        // This may fail in some environments using Promise polyfills
         expect(new ConError()).not.toBeInstanceOf(Promise);
       });
 
       it('should return a native Promise from then', () => {
         expect(new ConError().then(() => {}, () => {})).toBeInstanceOf(Promise);
+      });
+
+      it('should return a native Promise from a no-op then', () => {
+        const result = new ConError(ctxCode).then(() => {});
+        // Avoid UnhandledPromiseRejectionWarning by "handling" this:
+        result.catch(() => {});
+        expect(result).toBeInstanceOf(Promise);
+      });
+
+      it('native Promise.resolve(promiseInstance) behavior', () => {
+        const result = new ConError(ctxCode).then(() => {});
+        // Avoid UnhandledPromiseRejectionWarning by "handling" this:
+        result.catch(() => {});
+        expect(Promise.resolve(result)).toBe(result);
       });
 
       it('should return a native Promise from catch', () => {
