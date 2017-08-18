@@ -278,10 +278,10 @@ This returns an unsorted array of all sequences representing a full stack trace 
 a root cause up to the referent error. 
 
 More specifically, where a "root cause" is either a ConError with no cause, or another thrown type:
-- every element of the array is a ConError with the same message and context as the referent ConError
-- every element of the array has a chain where every ConError instance has exactly zero or one causes
-- every element of the array has a chain that ends with an original root cause
-- every root cause of the original ConError is returned exactly once
+- every array's first element is the referent ConError
+- each element in an array is the cause of the previous element
+- every array ends with an original root cause
+- every root cause is returned in exactly one array
 
 For example, if B failed because of two async functions, C and D, the returned array
 could contain two arrays of error sequences like this:
