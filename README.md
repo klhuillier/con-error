@@ -289,7 +289,7 @@ More specifically, where a "root cause" is either a ConError with no cause, or a
 - every root cause of the original ConError is returned exactly once
 
 For example, if B failed because of two async functions, C and D, the returned array
-could contain two ConError instances with hierarchies like this:
+could contain two arrays of error sequences like this:
 
 ```text
 before: [ A <- [ B <- E, C <- D ] ]
