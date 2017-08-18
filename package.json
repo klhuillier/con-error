@@ -13,7 +13,7 @@
     "test": "./node_modules/.bin/jest",
     "coverage": "./node_modules/.bin/jest --coverage"
   },
-  "main": "./dist/index.min.js",
+  "main": "./src/index.js",
   "license": "ISC",
   "dependencies": {},
   "devDependencies": {
