@@ -1,6 +1,6 @@
 {
   "name": "con-error",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "keywords": ["javascript", "errors", "promises"],
   "scripts": {
     "build-mkdist": "mkdir -p dist",
