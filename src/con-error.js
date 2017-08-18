@@ -9,11 +9,11 @@ function conErrorProvider(resolveCeArgs, ceSequences, ceFormats) {
     // Deliberately avoiding typeof because of babel's polyfills. Type coercions are
     // generally fast operations and are more reliable than typeof. Check out
     // lodash's _.isString for how complicated it can be.
-    resolvedArgs === Object(resolvedArgs) &&
-    Array.isArray(resolvedArgs.causes) &&
-    resolvedArgs.message === '' + resolvedArgs.message &&
-    resolvedArgs.context === Object(resolvedArgs.context) &&
-    capturedError instanceof Error;
+      resolvedArgs === Object(resolvedArgs)
+    && Array.isArray(resolvedArgs.causes)
+    && resolvedArgs.message === '' + resolvedArgs.message
+    && resolvedArgs.context === Object(resolvedArgs.context)
+    && capturedError instanceof Error;
 
   // Deep cloning context to capture contextual state at creation of ConError.
   // Not doing this can allow the contextual state to change later which does not
