@@ -126,6 +126,17 @@ describe('ConError', () => {
     });
 
     describe('callback arguments, results', () => {
+      it('should pass through a unary then call', done => {
+        new ConError(messageBoom)
+          // this .then has no reject handler so pass through
+          .then(() => done(fail()))
+          .then(() => done(fail()), err => {
+            expect(err.message).toEqual(messageBoom);
+            done();
+          })
+          .catch(err => done(fail(err)));
+      });
+
       it('should pass itself as the then reject argument', done => {
         new ConError(messageBoom)
           .then(() => done(fail()), err => {
