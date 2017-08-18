@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2017, Kevin L'Huillier <klhuillier@gmail.com>
+ *
+ * Released under the zlib license. See LICENSE.md or
+ * http://spdx.org/licenses/Zlib for the full license text.
+ */
+
 function conErrorProvider(resolveCeArgs, ceSequences, ceFormats) {
   // To preserve identity of the constructor and allow as much flexibility as possible for arguments
   // accepted, there are two ways to call the ConError ctor: the user-visible form and the normalized
@@ -6,10 +13,7 @@ function conErrorProvider(resolveCeArgs, ceSequences, ceFormats) {
   // separate fn and require users do `createConError`, `ConError.create`, etc, but I also hate that.)
 
   const argsAreNormalized = (resolvedArgs, capturedError) =>
-    // Deliberately avoiding typeof because of babel's polyfills. Type coercions are
-    // generally fast operations and are more reliable than typeof. Check out
-    // lodash's _.isString for how complicated it can be.
-      resolvedArgs === Object(resolvedArgs)
+    resolvedArgs === Object(resolvedArgs)
     && Array.isArray(resolvedArgs.causes)
     && resolvedArgs.message === '' + resolvedArgs.message
     && resolvedArgs.context === Object(resolvedArgs.context)
