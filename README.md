@@ -67,7 +67,7 @@ try {
 }
 ```
 
-## `new ConError((Error|Error[])?, string?, {}?)`
+## `new ConError(cause: (Error|Error[])?, message: string?, context: {}?)`
 
 ConError accepts an Error or array of Errors, a message, and an arbitrary object. All
 values are optional, but any that are given must appear in the expected order.
@@ -161,7 +161,7 @@ The existence of the `.then` function makes ConError appear Promise-like to scri
 The return value of `.then` is a native es6 Promise (or polyfill) and can be chained
 as usual.
 
-## `.then(fn, fn)`
+## `.then(resolveFn?, rejectFn?)`
 
 The first callback of `.then` is never called, since a ConError instance is always rejected.
 
@@ -176,7 +176,7 @@ fnThatReturnsConError()
   .then(opt => applyOption(opt));
 ```
 
-## `.catch(fn)`
+## `.catch(rejectFn)`
 
 The callback is always called after the interpreter has settled.
 
