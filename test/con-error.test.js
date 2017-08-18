@@ -199,9 +199,20 @@ describe('ConError', () => {
           .catch(err => done(fail(err)));
       });
 
-      it('should work as a rejected promise', done => {
+      it('should work as a rejected promise from a catch', done => {
         Promise.reject(messageBoom)
           .catch(msg => new ConError(msg))
+          .then(() => done(fail('ConError not treated as a rejected promise')))
+          .catch(err => {
+            expect(err).toBeInstanceOf(ConError);
+            done();
+          })
+          .catch(err => done(fail(err)));
+      });
+
+      it('should work as a rejected promise from a then', done => {
+        Promise.resolve(messageBoom)
+          .then(msg => new ConError(msg))
           .then(() => done(fail('ConError not treated as a rejected promise')))
           .catch(err => {
             expect(err).toBeInstanceOf(ConError);
