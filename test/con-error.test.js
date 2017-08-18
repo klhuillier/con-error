@@ -89,6 +89,15 @@ describe('ConError', () => {
       it('should return a native Promise from catch', () => {
         expect(new ConError().catch(() => {})).toBeInstanceOf(Promise);
       });
+
+      it('should be rejectable with Promise.reject', done => {
+        Promise.reject(new ConError(ctxCode))
+          .then(() => done(fail()), err => {
+            expect(err.context).toEqual(ctxCode);
+            done();
+          })
+          .catch(err => done(fail(err)));
+      });
     });
 
     describe('callbacks run after interpreter settles', () => {
