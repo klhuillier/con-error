@@ -1,4 +1,8 @@
 # ConError - Contextual JavaScript Errors
+==
+
+[![Build Status](https://travis-ci.org/klhuillier/con-error.svg?branch=master)](https://travis-ci.org/klhuillier/con-error)
+[![Coverage Status](https://coveralls.io/repos/github/klhuillier/con-error/badge.svg?branch=master)](https://coveralls.io/github/klhuillier/con-error?branch=master)
 
 *Give context to your errors or the bunny gets it*
 
