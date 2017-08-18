@@ -295,7 +295,7 @@ could contain two arrays of error sequences like this:
 before: [ A <- [ B <- E, C <- D ] ]
 
 after: [
-  [A <- B <- E],
-  [A <- C <- D],
+  [A, B, E],
+  [A, C, D],
 ]
 ```
