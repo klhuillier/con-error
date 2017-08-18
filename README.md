@@ -104,35 +104,6 @@ return promise
   }));
 ```
 
-## `.throw()`
-
-`.throw` does as it says, it will throw the ConError.
-
-Useful when the `throw` keyword is not permitted, e.g., in a ternary:
-
-```javascript
-const clampTo100 = number =>
-  number > 0 ?
-    Math.min(number, 100) :
-    new ConError('number not positive', {number: number}).throw();
-``` 
-
-## `.toString()`
-
-Returns a string containing the entire stack trace of the ConError instance. At each level in
-the hierarchy, it will only select and stringify the first cause. This is
-the same as `cerr.formats().string()`.
-
-To stringify all sequences of errors, `cerr.sequences().all().map(e => e.toString())`
-
-## `.formats()`
-
-Returns a `CeFormats` instance to produce outputs for this ConError.
-
-## `.sequences()`
-
-Returns a new `CeSequences` instance for this ConError.
-
 ## `.causes`
 
 A list of nested errors, if any. If there are none, this is an empty array.
@@ -155,6 +126,94 @@ point of capture and the format varies by JS engine.
 Because the stack is taken from an Error captured internally, this stack
 will contain an additional line inside ConError.
 
+## `.formats()`
+
+Returns a `CeFormats` instance to produce outputs for this ConError.
+
+## `.toString()`
+
+Returns a string containing the entire stack trace of the ConError instance. At each level in
+the hierarchy, it will only select and stringify the first cause. This is
+the same as `cerr.formats().string()`.
+
+To stringify all sequences of errors, `cerr.sequences().all().map(e => e.toString())`
+
+## `.sequences()`
+
+Returns a new `CeSequences` instance for this ConError.
+
+## `.throw()`
+
+`.throw` does as it says, it will throw the ConError.
+
+Can be used when the `throw` keyword is not permitted, e.g., in a ternary:
+
+```javascript
+const clampTo100 = number =>
+  number > 0 ?
+    Math.min(number, 100) :
+    new ConError('number not positive', {number: number}).throw();
+``` 
+
+# Promise-like behavior
+
+The existence of the `.then` function makes ConError appear Promise-like to scripts.
+The return value of `.then` is a native es6 Promise (or polyfill) and can be chained
+as usual.
+
+## `.then(fn, fn)`
+
+The first callback of `.then` is never called, since a ConError instance is always rejected.
+
+When a rejected callback is given, this is called after the interpreter has settled. The
+ConError instance is given as the argument to the callback.
+
+This will call applyOption with the resolved value of defaultOption:
+
+```javascript
+fnThatReturnsConError()
+  .then(opt => opt, () => defaultOption)
+  .then(opt => applyOption(opt));
+```
+
+## `.catch(fn)`
+
+The callback is always called after the interpreter has settled.
+
+The return value is a native Promise which will be resolved or rejected based on the callback.
+
+## Caveats
+
+With native Promises, there are subtle differences. The EcmaScript standard checks for
+internal states which cannot be set by script.
+
+```javascript
+Promise.resolve(conError) === conError; // true with some Promise libraries
+Promise.resolve(conError) === conError; // false with native Promise
+```
+
+The inheritance chain of ConError is an Error and not a Promise. As a result, testing
+with `instanceof` will indicate it is not a Promise.
+
+```javascript
+conError instanceof ConError; // true
+conError instanceof Error; // true
+conError instanceof Promise; // false
+```
+
+When the differences are important, one can easily make it a native Promise:
+
+```javascript
+// with Promise.reject
+const rejected = Promise.reject(new ConError());
+Promise.resolve(rejected) === rejected; // true
+rejected instanceof Promise; // true
+// or with a no-op then:
+const nooped = new ConError().then(value => value);
+Promise.resolve(nooped) === nooped; // true
+nooped instanceof Promise; // true
+```
+
 # CeFormats
 
 Created by a ConError with `.formats()` to encode the error for output.
@@ -162,9 +221,6 @@ Created by a ConError with `.formats()` to encode the error for output.
 ## `.string()`
 
 Returns a form of the ConError that is formatted as a plain string.
-
-By default, in a browser, this will not serialize context objects so that the objects will listed as
-collapsible/expandable objects.
 
 ## `.object()`
 
@@ -199,7 +255,9 @@ Returns a form of the ConError object serialized as JSON with the following form
 
 number of spaces to indent each line, 0 = compact form
 
-`{indent: 2}`
+```js
+cerr.formats().json({indent: 2});
+```
 
 # CeSequences
 
@@ -241,62 +299,3 @@ after: [
   [A <- C <- D],
 ]
 ```
-
-# Promise-like behavior
-
-The existence of the `.then` function makes ConError appear Promise-like to scripts.
-The return value of `.then` is a native es6 Promise (or polyfill) and can be chained
-as usual.
-
-## Caveats
-
-With native Promises, there are subtle differences. The EcmaScript standard checks for
-internal states which cannot be set by script.
-
-```javascript
-Promise.resolve(conError) === conError; // true with some Promise libraries
-Promise.resolve(conError) === conError; // false with native Promise
-```
-
-The inheritance chain of ConError is an Error and not a Promise. As a result, testing
-with `instanceof` will indicate it is not a Promise.
-
-```javascript
-conError instanceof ConError; // true
-conError instanceof Error; // true
-conError instanceof Promise; // false
-```
-
-When the differences are important, one can easily make it a native Promise:
-
-```javascript
-// with Promise.reject
-const rejected = Promise.reject(new ConError());
-Promise.resolve(rejected) === rejected; // true
-rejected instanceof Promise; // true
-// or with a no-op then:
-const nooped = new ConError().then(value => value);
-Promise.resolve(nooped) === nooped; // true
-nooped instanceof Promise; // true
-```
-
-## `.then(fn, fn)`
-
-The first callback of `.then` is never called, since a ConError instance is always rejected.
-
-When a rejected callback is given, this is called after the interpreter has settled. The
-ConError instance is given as the argument to the callback.
-
-This will call applyOption with the resolved value of defaultOption:
-
-```javascript
-fnThatReturnsConError()
-  .then(opt => opt, () => defaultOption)
-  .then(opt => applyOption(opt));
-```
-
-## `.catch(fn)`
-
-The callback is always called after the interpreter has settled.
-
-The return value is a native Promise which will be resolved or rejected based on the callback.
