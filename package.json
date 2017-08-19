@@ -4,17 +4,14 @@
   "description": "Chainable errors with context objects",
   "keywords": ["javascript", "error", "context", "chain", "promise"],
   "scripts": {
-    "build-mkdist": "mkdir -p dist",
-    "build-static": "cp LICENSE.md README.md dist",
-    "build-bundle": "./node_modules/.bin/browserify -d src/index -o dist/index.js -s ConError",
-    "build-minify": "./node_modules/.bin/uglifyjs -c 'dead_code,unsafe,conditionals,comparisons,evaluate,booleans,loops,unused,if_return,inline,join_vars,cascade,collapse_vars,reduce_vars,passes=2' -m reserved='[ConError]' dist/index.js -o dist/index.min.js",
-    "build-minify-safe": "./node_modules/.bin/uglifyjs -cm reserved='[ConError]' dist/index.js -o dist/index.min.js",
-    "build-minify-warn": "./node_modules/.bin/uglifyjs -c 'dead_code,unsafe,conditionals,comparisons,evaluate,booleans,loops,unused,if_return,inline,join_vars,cascade,collapse_vars,reduce_vars,passes=2,warnings' -m reserved='[ConError]' --verbose --warn dist/index.js -o dist/index.min.js",
-    "build": "npm run build-mkdist && npm run build-static && npm run build-bundle && npm run build-minify",
+    "build:mkdist": "mkdir -p dist",
+    "build:bundle": "./node_modules/.bin/browserify -d src/index -o dist/index.js -s ConError",
+    "build:minify": "./node_modules/.bin/uglifyjs -c 'dead_code,unsafe,conditionals,comparisons,evaluate,booleans,loops,unused,if_return,inline,join_vars,cascade,collapse_vars,reduce_vars,passes=2' -m reserved='[ConError]' dist/index.js -o dist/index.min.js",
+    "build": "npm run build:mkdist && npm run build:bundle && npm run build:minify",
     "test": "./node_modules/.bin/jest",
     "coverage": "./node_modules/.bin/jest --coverage"
   },
-  "main": "./src/index.js",
+  "main": "./dist/index.min.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/klhuillier/con-error.git"
