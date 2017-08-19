@@ -1,6 +1,6 @@
 {
   "name": "con-error",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "keywords": ["javascript", "errors", "promises"],
   "scripts": {
     "build-mkdist": "mkdir -p dist",
@@ -14,7 +14,11 @@
     "coverage": "./node_modules/.bin/jest --coverage"
   },
   "main": "./src/index.js",
-  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/klhuillier/con-error.git"
+  },
+  "license": "zlib",
   "dependencies": {},
   "devDependencies": {
     "babel-preset-env": "^1.6.0",
