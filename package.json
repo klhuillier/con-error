@@ -1,6 +1,6 @@
 {
   "name": "con-error",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "Chainable errors with context objects",
   "keywords": ["javascript", "error", "context", "chain", "promise"],
   "scripts": {
