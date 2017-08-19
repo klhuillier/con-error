@@ -12,6 +12,7 @@
 - rethrow and chain errors
 - include an object with values from the point of an error
 - behaves similar to a rejected Promise and can be used as one
+- no dependencies
 
 ## Stack traces
 
