@@ -5,13 +5,13 @@
   "keywords": ["javascript", "error", "context", "chain", "promise"],
   "scripts": {
     "build:mkdist": "mkdir -p dist",
-    "build:bundle": "./node_modules/.bin/browserify -d src/index -o dist/index.js -s ConError",
-    "build:minify": "./node_modules/.bin/uglifyjs -c 'dead_code,unsafe,conditionals,comparisons,evaluate,booleans,loops,unused,if_return,inline,join_vars,cascade,collapse_vars,reduce_vars,passes=2' -m reserved='[ConError]' dist/index.js -o dist/index.min.js",
+    "build:bundle": "./node_modules/.bin/browserify -d src/index -o dist/con-error.js -s ConError",
+    "build:minify": "./node_modules/.bin/uglifyjs -c 'dead_code,unsafe,conditionals,comparisons,evaluate,booleans,loops,unused,if_return,inline,join_vars,cascade,collapse_vars,reduce_vars,passes=2' -m reserved='[ConError]' dist/con-error.js -o dist/con-error.min.js",
     "build": "npm run build:mkdist && npm run build:bundle && npm run build:minify",
     "test": "./node_modules/.bin/jest",
     "coverage": "./node_modules/.bin/jest --coverage"
   },
-  "main": "./dist/index.min.js",
+  "main": "./dist/con-error.min.js",
   "files": [
     "dist",
     "src",
