@@ -16,6 +16,6 @@ module.exports = require('./con-error')(
     require('./formats/json-format')(
       require('./formats/object-format'),
       JSON.stringify
-    ),
+    )
   )
 );
