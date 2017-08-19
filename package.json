@@ -12,6 +12,12 @@
     "coverage": "./node_modules/.bin/jest --coverage"
   },
   "main": "./dist/index.min.js",
+  "files": [
+    "dist",
+    "src",
+    "LICENSE.md",
+    "README.md"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/klhuillier/con-error.git"
